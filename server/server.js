@@ -1,6 +1,5 @@
 const net = require("net");
 const WebSocket = require("ws");
-const events = require("events");
 
 function noop() {}
 
@@ -13,6 +12,10 @@ function heartbeat() {
 wss.on('connection', function connection(ws) {
 	ws.isAlive = true;
 	ws.on('pong', heartbeat);
+
+	if(ws.readyState === WebSocket.OPEN) {
+		ws.send("needIdent");
+	}
 });
 const interval = setInterval(function ping() {
 	wss.clients.forEach(function each(ws) {
@@ -25,26 +28,17 @@ const interval = setInterval(function ping() {
 	});
 }, 60000);
 
-wss.broadcast = function broadcast(data) {
+wss.broadcast = function broadcast(identifier, data) {
 	wss.clients.forEach(function each(client) {
 		if(client.readyState === WebSocket.OPEN) {
-			client.send(data, function ack(err) {
-				// do nothing
-			});
+			if(client.identifier == identifier) {
+				client.send(data, function ack(err) {
+					// do nothing
+				});
+			}
 		}
 	});
 };
-
-/*
-var emitter = new events.EventEmitter();
-emitter.addListener("chat", function(who, msg) {
-	wss.broadcast({
-		who: who,
-		msg: msg,
-		time: Date.now()
-	});
-});
-*/
 
 var servers = {};
 var funcs = {
@@ -60,6 +54,20 @@ var funcs = {
 		socket.serverIdentifier = parts[1];
 		
 		return "HELLO\t" + parts[1];
+	},
+
+	"chat": function(socket, parts) {
+		if(parts.length < 3) {
+			return "ERR\t0";
+		}
+
+		let out = {
+			who: parts[1],
+			msg: parts[2],
+			time: Date.now()
+		};
+
+		wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
 	}
 };
 
@@ -81,7 +89,10 @@ function handle(socket, parts) {
 	}
 
 	if(cmd in funcs) {
-		send(funcs[cmd](socket, parts));
+		let out = funcs[cmd](socket, parts);
+		if(out) {
+			send(out);
+		}
 	}
 }
 

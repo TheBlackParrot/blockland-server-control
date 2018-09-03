@@ -8,6 +8,8 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 		case "ERR":
 			switch(stripMLControlChars(getField(%line, 1))) {
 				case 0:
+					echo("\c0Not enough arguments were provided for this remote control command.");
+				case 1:
 					echo("\c0Another server is already using this identifier, please use a unique identifier.");
 			}
 
