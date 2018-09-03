@@ -55,13 +55,17 @@ function RemoteControlTCPObject::onConnected(%this) {
 function RemoteControlTCPObject::onConnectFailed(%this) {
 	cancel($RemoteControlConnectRetryLoop);
 	echo("Trying to connect to the remote control server again (failed to connect)...");
-	$RemoteControlConnectRetryLoop = %this.schedule(10000, connect, "127.0.0.1:28900");
+	$RemoteControlConnectRetryLoop = %this.schedule(5000, connect, "127.0.0.1:28900");
+
+	cancel($RemoteControlBrickCountStatLoop);
 }
 
 function RemoteControlTCPObject::onDisconnect(%this) {
 	cancel($RemoteControlConnectRetryLoop);
 	echo("Trying to connect to the remote control server again (disconnected)...");
-	$RemoteControlConnectRetryLoop = %this.schedule(10000, connect, "127.0.0.1:28900");
+	$RemoteControlConnectRetryLoop = %this.schedule(5000, connect, "127.0.0.1:28900");
+
+	cancel($RemoteControlBrickCountStatLoop);
 }
 
 exec("./setup.cs");

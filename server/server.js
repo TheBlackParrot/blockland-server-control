@@ -14,8 +14,30 @@ wss.on('connection', function connection(ws) {
 	ws.on('pong', heartbeat);
 
 	if(ws.readyState === WebSocket.OPEN) {
-		ws.send("needIdent");
+		ws.send(JSON.stringify({cmd: "needIdent"}));
 	}
+
+	ws.on('message', function(raw) {
+		let data = JSON.parse(raw);
+
+		switch(data.cmd) {
+			case "setIdent":
+				ws.identifier = data.ident;
+
+				if(ws.identifier in servers) {
+					if("serverStats" in servers[ws.identifier]) {
+						var out = {
+							cmd: "stat",
+							stats: servers[ws.identifier].serverStats,
+							time: Date.now()
+						};
+
+						ws.send(JSON.stringify(out));
+					}
+				}
+				break;
+		}
+	});
 });
 const interval = setInterval(function ping() {
 	wss.clients.forEach(function each(ws) {
@@ -52,6 +74,7 @@ var funcs = {
 		}
 
 		socket.serverIdentifier = parts[1];
+		servers[parts[1]] = socket;
 		
 		return "HELLO\t" + parts[1];
 	},
@@ -62,12 +85,73 @@ var funcs = {
 		}
 
 		let out = {
+			cmd: "chat",
 			who: parts[1],
 			msg: parts[2],
 			time: Date.now()
 		};
 
 		wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
+	},
+
+	/*
+	"stat": function(socket, parts) {
+		if(parts.length < 2) {
+			return "ERR\t0";
+		}
+
+		let out = {
+			cmd: "stat",
+			stats: [],
+			time: Date.now()
+		}
+
+		for(let idx = 1; idx < parts.length; idx++) {
+			let part = parts[idx].split("|");
+
+			if(part.length < 2) {
+				continue;
+			}
+
+			let row = {
+				which: part[0],
+				value: part[1]
+			}
+
+			out.stats.push(row);
+		}
+
+		wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
+	}
+	*/
+
+	"stat": function(socket, parts) {
+		if(parts.length < 2) {
+			return "ERR\t0";
+		}
+
+		if(!("serverStats" in socket)) {
+			socket.serverStats = {};
+		}
+
+		let out = {
+			cmd: "stat",
+			stats: {},
+			time: Date.now()
+		}
+
+		for(let idx = 1; idx < parts.length; idx++) {
+			let part = parts[idx].split("|");
+
+			if(part.length < 2) {
+				continue;
+			}
+
+			socket.serverStats[part[0]] = part[1];
+			out.stats[part[0]] = part[1];
+
+			wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
+		}
 	}
 };
 
