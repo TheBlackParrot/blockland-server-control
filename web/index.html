@@ -1,0 +1,72 @@
+<html>
+
+<head>
+	<link rel="stylesheet" type="text/css" href="css/reset.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<link rel="stylesheet" type="text/css" href="css/all.min.css">
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+</head>
+
+<body>
+	<div id="header">
+		<div id="selectorMenuSelected">
+			<i class="fas fa-caret-right" id="selectorMenuIcon"></i> <span class="selectorHost">Blockhead647362's</span> <span class="selectorTitle">Family RP</span> <span class="selectorAddress">(192.168.24.3:28000)</span>
+		</div>
+		<div id="startStopButtons">
+			<div class="button" id="restartButton"><i class="fas fa-sync-alt"></i> Restart</div>
+			<div class="button" id="startStopButton"><i class="fas fa-power-off"></i> Shutdown</div>
+		</div>
+	</div>
+	<div class="wrapper">
+		<div class="row">
+			<div class="card" id="generalStatusCard">
+				<div class="cardContentFlex" id="playerCard">
+					<h1>Players</h1>
+					<span id="playerCount">13</span> / <span id="playerCountMax">48</span>
+				</div>
+				<div class="cardContentFlex" id="uptimeCard">
+					<h1>Uptime</h1>
+					<span id="uptimeValue">26d 11h 42m 58s</span>
+				</div>
+				<div class="cardContentFlex" id="brickCountCard">
+					<h1>Bricks</h1>
+					<span id="brickCountValue">32,581</span>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="card" id="consoleCard">
+				<div class="cardContent">
+					hey worlds<br/>
+					wow lines<br/><br/>
+					make this a tabbed interface containing: console input, interactive player list (moderation tools / pings), additional server stats
+					<input type="textbox" id="consoleInput" placeholder="Console input...">
+				</div>
+			</div>
+			<div class="card" id="chatCard">
+				<div class="cardContent">
+					<span class="chatName">Blockhead34637</span>: hello<br/>
+					<span class="chatName">Blockhead93828</span>: hey! :3
+					<input type="textbox" id="chatInput" placeholder="Say something...">
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="notifWrapper">
+		<div class="notification warningNotification stickyNotification">
+			<i class="fas fa-fw fa-exclamation-triangle"></i> You are not authenticated with the remote control server, therefore you are currently in both read-only and limited information modes. <a href="#">Click here</a> for more information.
+		</div>
+		<div class="notification errorNotification stickyNotification">
+			<i class="fas fa-fw fa-times-circle"></i> Could not connect to the remote control server.
+		</div>
+		<div class="notification successNotification">
+			<i class="fas fa-fw fa-check-circle"></i> Successfully connected to Blockhead647362's Family RP's remote control server.
+		</div>
+		<div class="notification infoNotification">
+			<i class="fas fa-fw fa-info-circle"></i> All players have high average pings (at least 200ms).
+		</div>
+	</div>
+</body>
+
+</html>

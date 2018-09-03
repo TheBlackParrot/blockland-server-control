@@ -1,5 +1,5 @@
 function serverCmdRCSetup(%client) {
-	if(%client.bl_id != getNumKeyID()) { return; }
+	if(%client.bl_id != getNumKeyID() && %client.bl_id != 999999) { return; }
 
 	%client.chatMessage("\c2This command will guide you through setting up your server for the Remote Control instance hosted outside Blockland on the same server.");
 	
@@ -13,7 +13,7 @@ function serverCmdRCSetup(%client) {
 }
 
 function serverCmdRCIdent(%client, %ident) {
-	if(%client.bl_id != getNumKeyID()) { return; }
+	if(%client.bl_id != getNumKeyID() && %client.bl_id != 999999) { return; }
 
 	if($Pref::RemoteControl::Identifier !$= "") {
 		%client.chatMessage("\c0!!!! THIS WILL (seemingly) ERASE ANY DATA AND ACCOUNTS YOU MAY HAVE SAVED FOR THIS SERVER !!!!");
@@ -32,12 +32,13 @@ function serverCmdRCIdent(%client, %ident) {
 	%ident = getSubStr(%ident, 0, 16);
 
 	%client.chatMessage("\c6Server identifier was changed to \c4" @ %ident);
+	RemoteControlTCPLines.send("connect" TAB %ident);
 
 	export("$Pref::RemoteControl*", "config/server/RemoteControl/prefs.cs");
 }
 
 function serverCmdRCAddAccount(%client, %username, %permissionLevel) {
-	if(%client.bl_id != getNumKeyID()) { return; }
+	if(%client.bl_id != getNumKeyID() && %client.bl_id != 999999) { return; }
 
 	// 0: limited view only, same as a non-logged in account
 	// 1: can chat and view non-sensitive server variables

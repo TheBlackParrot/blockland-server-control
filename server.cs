@@ -8,7 +8,7 @@ function initRemoteControlConnection() {
 	}
 
 	%obj = RemoteControlTCPObject;
-	%obj.connect("127.0.0.1:28999");
+	%obj.connect("127.0.0.1:28900");
 
 	if(!isObject(RemoteControlTCPLines)) {
 		// blockland likes to merge multiple send commands being called at once into one line
@@ -37,7 +37,7 @@ function RemoteControlTCPLines::checkToSend(%this) {
 	%data = %this.getRowText(0);
 	%this.removeRow(0);
 
-	RemoteControlTCPObject.send("server" TAB %data @ "\r\n");
+	RemoteControlTCPObject.send(%data @ "\r\n");
 }
 
 function RemoteControlTCPObject::onConnected(%this) {
@@ -53,13 +53,15 @@ function RemoteControlTCPObject::onConnected(%this) {
 }
 
 function RemoteControlTCPObject::onConnectFailed(%this) {
+	cancel($RemoteControlConnectRetryLoop);
 	echo("Trying to connect to the remote control server again (failed to connect)...");
-	$RemoteControlConnectRetryLoop = %this.schedule(10000, connect, "127.0.0.1:28999");
+	$RemoteControlConnectRetryLoop = %this.schedule(10000, connect, "127.0.0.1:28900");
 }
 
 function RemoteControlTCPObject::onDisconnect(%this) {
+	cancel($RemoteControlConnectRetryLoop);
 	echo("Trying to connect to the remote control server again (disconnected)...");
-	$RemoteControlConnectRetryLoop = %this.schedule(10000, connect, "127.0.0.1:28999");
+	$RemoteControlConnectRetryLoop = %this.schedule(10000, connect, "127.0.0.1:28900");
 }
 
 exec("./setup.cs");

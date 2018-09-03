@@ -1,0 +1,213 @@
+body {
+	font-family: "Roboto", sans-serif;
+	background-color: #eee;
+}
+
+#header {
+	background-color: #3ca370;
+	color: #fff;
+	position: fixed;
+	padding-left: 16px;
+	padding-right: 16px;
+	width: calc(100% - 32px);
+	height: 64px;
+	box-shadow: 0px 0px 6px rgba(0, 0, 0, 1);
+	line-height: 64px;
+}
+
+.button {
+	display: inline-block;
+	padding-top: 6px;
+	padding-bottom: 6px;
+	padding-left: 12px;
+	padding-right: 12px;
+	text-transform: uppercase;
+	font-weight: 700;
+	border-radius: 6px;
+	box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+	font-size: 10pt;
+	height: 20px;
+	display: unset;
+}
+
+#startStopButtons {
+	float: right;
+}
+
+#startStopButtons .button {
+	margin-left: 8px;
+}
+
+#startStopButton {
+	background-color: #eb564b;
+	color: #fff;
+}
+
+#restartButton {
+	background-color: #ffe478;
+	color: #000;
+}
+
+#selectorMenuSelected {
+	float: left;
+}
+
+#selectorMenuIcon {
+	font-size: 16pt;
+	margin-right: 4px;
+}
+
+.selectorHost {
+	font-style: italic;
+}
+.selectorTitle {
+	font-weight: 700;
+}
+.selectorAddress {
+	opacity: 0.66;
+	font-size: 9pt;
+}
+
+.wrapper {
+	position: absolute;
+	top: 64px;
+	width: 100%;
+	line-height: 30px;
+}
+
+.row {
+	display: flex;
+}
+
+.card {
+	display: flex;
+	padding: 24px;
+	margin: 24px;
+	margin-bottom: 0px;
+	border-radius: 12px;
+	background-color: #fff;
+	box-shadow: 2px 2px 4px rgba(0, 0, 0, .15);
+	justify-content: space-evenly;
+}
+
+#generalStatusCard {
+	width: 100%;
+}
+
+#generalStatusCard h1 {
+	opacity: 0.4;
+	font-weight: 700;
+	font-size: 12pt;
+	text-align: center;
+}
+
+#playerCard, #uptimeValue, #brickCountValue {
+	font-size: 24pt;
+	font-weight: 900;
+}
+
+#consoleCard {
+	background-color: #323e4f;
+	font-family: monospace;
+	color: #c2c2d1;
+	width: 70%;
+	line-height: 13pt;
+	position: relative;
+}
+
+#chatCard {
+	width: 30%;
+	background-color: #7e7e8f;
+	line-height: 20pt;
+	position: relative;
+}
+
+#consoleCard, #chatCard {
+	justify-content: flex-start;
+}
+
+.cardContent {
+	max-height: 400px;
+	min-height: 400px;
+}
+
+#chatCard .cardContent, #chatInput {
+	color: #fff;
+	font-family: "Palatino Linotype", serif;
+	font-size: 14pt;
+	text-shadow: -1px 1px 0 #000,
+				 1px 1px 0 #000,
+				 1px -1px 0 #000,
+				 -1px -1px 0 #000;
+}
+
+.chatName {
+	color: yellow;
+}
+
+#consoleInput, #chatInput {
+	border: 0;
+	outline: 0;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	padding-left: 24px;
+	padding-right: 24px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	width: 100%;
+	border-bottom-left-radius: 12px;
+	border-bottom-right-radius: 12px;
+}
+
+#consoleInput {
+	background-color: #272736;
+	color: #c2c2d1;
+	font-family: monospace;
+}
+
+#chatInput {
+	background-color: #606070;
+	font-size: 12pt;
+	line-height: 13pt;
+}
+
+.notifWrapper {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	box-shadow: 0px 0px 6px rgba(0, 0, 0, 1);
+}
+
+.notification {
+	width: 100%;
+	padding-left: 12px;
+	padding-right: 12px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	font-weight: 500;
+	font-size: 12pt;
+	line-height: 20px;
+}
+
+.notification i {
+	margin-right: 4px;
+}
+
+.warningNotification {
+	background-color: #ffe478;
+	color: #000;
+}
+.successNotification {
+	background-color: #3ca370;
+	color: #fff;
+}
+.infoNotification {
+	background-color: #323e4f;
+	color: #fff;
+}
+.errorNotification {
+	background-color: #eb564b;
+	color: #fff;
+}
