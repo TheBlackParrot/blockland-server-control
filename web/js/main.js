@@ -4,7 +4,7 @@ var curUptime = 0;
 
 var uptimeLoop = setInterval(function() {
 	curUptime++;
-	
+
 	let seconds = curUptime % 60;
 	let minutes = Math.floor(curUptime / 60) % 60;
 	let hours = Math.floor(curUptime / 60 / 60) % 24;
@@ -48,7 +48,7 @@ ws.onmessage = function(event) {
 						break;
 
 					case "bricks":
-						$("#brickCountValue").text(data.stats[key].toLocaleString());
+						$("#brickCountValue").text(parseInt(data.stats[key], 10).toLocaleString());
 						break;
 
 					case "players":

@@ -13,6 +13,7 @@ body {
 	height: 64px;
 	box-shadow: 0px 0px 6px rgba(0, 0, 0, 1);
 	line-height: 64px;
+	z-index: 2;
 }
 
 .button {
@@ -28,6 +29,13 @@ body {
 	font-size: 10pt;
 	height: 20px;
 	display: unset;
+	transition: .1s;
+}
+
+.button:hover {
+	background-color: #000 !important;
+	color: #fff !important;
+	transition: .1s;
 }
 
 #startStopButtons {
@@ -49,12 +57,29 @@ body {
 }
 
 #selectorMenuSelected {
-	float: left;
+	position: fixed;
+	left: 0;
+	padding-left: 16px;
+	padding-right: 16px;
+	transition: .1s;
+}
+#selectorMenuSelected:hover {
+	background-color: rgba(255, 255, 255, 0.15);
+	transition: .1s;
 }
 
 #selectorMenuIcon {
 	font-size: 16pt;
-	margin-right: 4px;
+	margin-right: 8px;
+	float: left;
+	line-height: 64px;
+}
+
+#selectorMenuSelected .selectorRow {
+	display: table-cell;
+	vertical-align: middle;
+	height: 64px;
+	line-height: 20px;
 }
 
 .selectorHost {
@@ -64,8 +89,17 @@ body {
 	font-weight: 700;
 }
 .selectorAddress {
+	opacity: 0.5;
+	font-size: 8pt;
+}
+.selectorIdent {
 	opacity: 0.66;
-	font-size: 9pt;
+	font-weight: 700;
+	font-size: 10pt;
+}
+.selectorPermissions {
+	opacity: 0.33;
+	font-size: 8pt;
 }
 
 .wrapper {
@@ -229,4 +263,22 @@ body {
 .errorNotification {
 	background-color: #eb564b;
 	color: #fff;
+}
+
+#selectorMenu {
+	position: fixed;
+	left: 0;
+	top: 64px;
+	z-index: 1;
+	max-width: 350px;
+	background-color: #fff;
+	box-shadow: 0px 0px 6px rgba(0, 0, 0, 1);
+	max-height: calc(100vh - 64px);
+	overflow-y: auto;
+}
+
+#selectorMenu .selectorRow {
+	line-height: 20px;
+	padding: 16px;
+	border-bottom: 1px solid #ddd;
 }

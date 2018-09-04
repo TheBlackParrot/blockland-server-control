@@ -94,37 +94,6 @@ var funcs = {
 		wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
 	},
 
-	/*
-	"stat": function(socket, parts) {
-		if(parts.length < 2) {
-			return "ERR\t0";
-		}
-
-		let out = {
-			cmd: "stat",
-			stats: [],
-			time: Date.now()
-		}
-
-		for(let idx = 1; idx < parts.length; idx++) {
-			let part = parts[idx].split("|");
-
-			if(part.length < 2) {
-				continue;
-			}
-
-			let row = {
-				which: part[0],
-				value: part[1]
-			}
-
-			out.stats.push(row);
-		}
-
-		wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
-	}
-	*/
-
 	"stat": function(socket, parts) {
 		if(parts.length < 2) {
 			return "ERR\t0";
@@ -197,6 +166,16 @@ net.createServer(function(socket) {
 		}
 
 		handle(socket, parts)
+	});
+
+	socket.on("error", function(err) {
+		if("serverIdentifier" in socket) {
+			if(socket.serverIdentifier in servers) {
+				delete servers[socket.serverIdentifier];
+			}
+		}
+
+		TCPclients.splice(TCPclients.indexOf(socket), 1);		
 	});
 
 	socket.on('end', function () {
