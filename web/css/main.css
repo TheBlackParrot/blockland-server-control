@@ -188,6 +188,9 @@ body {
 .chatName {
 	color: yellow;
 }
+.chatNameRemote {
+	color: lime;
+}
 .chatName::after {
 	content: ": ";
 	color: white;

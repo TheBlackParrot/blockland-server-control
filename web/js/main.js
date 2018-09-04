@@ -62,6 +62,7 @@ ws.onmessage = function(event) {
 		case "chat":
 			var elem = $('<div class="chatRow"></div>');
 			var nameElem = $('<span class="chatName"></span>').text(data.who);
+			if(data.remote) { nameElem.addClass("chatNameRemote"); }
 			var msgElem = $('<span class="chatMsg"></span>').text(data.msg);
 
 			elem.append(nameElem);
@@ -107,7 +108,7 @@ ws.onmessage = function(event) {
 						if(!parseInt(value, 10)) {
 							$("#restartButton").addClass("disabled");
 							$("#startStopButton").addClass("disabled");
-							
+
 							sendNotification("warning", "This server is not dedicated, server process management has been disabled.", true);
 						}
 						break;
@@ -140,3 +141,19 @@ $("#selectorMenuSelected").on("click", function(event) {
 		$("#selectorMenu").removeClass("selectorMenuSlideUp");
 	}
 });
+
+$("#chatInput").keypress(function(e) {
+	if(e.which == 13) {
+		let val = $(this).val();
+		if(!val) { return false; }
+
+		var out = {
+			cmd: "chat",
+			msg: val
+		};
+
+		ws.send(JSON.stringify(out));
+
+		$(this).val("");
+	}
+})

@@ -2,6 +2,13 @@ const net = require("net");
 const WebSocket = require("ws");
 const crypto = require("crypto");
 const fs = require("fs");
+const os = require("os");
+
+var disableConsole = false;
+if(os.type() == "Windows_NT") {
+	// can't open console.log while the game is running in Windows; should be fine in Linux and Mac
+	disableConsole = true;
+}
 
 var accounts = require("./accounts.json");
 
@@ -23,6 +30,7 @@ wss.on('connection', function connection(ws) {
 
 	ws.on('message', function(raw) {
 		let data = JSON.parse(raw);
+		let out = {};
 
 		switch(data.cmd) {
 			case "setIdent":
@@ -30,13 +38,13 @@ wss.on('connection', function connection(ws) {
 
 				if(ws.identifier in servers) {
 					if("serverStats" in servers[ws.identifier]) {
-						var out = {
+						out = {
 							cmd: "acceptIdent",
 							time: Date.now()
 						};
 						ws.send(JSON.stringify(out));
 
-						var out = {
+						out = {
 							cmd: "stat",
 							stats: servers[ws.identifier].serverStats,
 							time: Date.now()
@@ -52,12 +60,32 @@ wss.on('connection', function connection(ws) {
 					return;
 				}
 
-				var out = {
+				out = {
 					cmd: "uptime",
 					value: Date.now() - servers[ws.identifier].serverStartedAt,
 					time: Date.now()
 				};
 				ws.send(JSON.stringify(out));
+				break;
+
+			case "chat":
+				// TODO: permissions
+				if(!("identifier" in ws)) {
+					return;
+				}
+
+				out = "MSG\tNAMES_TODO\t" + data.msg;
+				servers[ws.identifier].write(out + "\r\n");
+
+				out = {
+					cmd: "chat",
+					who: "NAMES_TODO",
+					msg: data.msg,
+					remote: true,
+					time: Date.now()
+				};
+
+				wss.broadcast(ws.identifier, JSON.stringify(out));
 				break;
 		}
 	});
@@ -115,6 +143,7 @@ var funcs = {
 			cmd: "chat",
 			who: parts[1],
 			msg: parts[2],
+			remote: false,
 			time: Date.now()
 		};
 
