@@ -1,0 +1,65 @@
+.rotate90 {
+	transform: rotate(90deg);
+	transition: .25s;
+}
+
+@keyframes selectorMenuSlideDown {
+	from {
+		transform: translateY(-75vh);
+	}
+
+	to {
+		transform: translateY(0vh);
+	}
+}
+.selectorMenuSlideDown {
+	animation-name: selectorMenuSlideDown;
+	animation-duration: .25s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes selectorMenuSlideUp {
+	from {
+		transform: translateY(0vh);
+	}
+
+	to {
+		transform: translateY(-75vh);
+	}
+}
+.selectorMenuSlideUp {
+	animation-name: selectorMenuSlideUp;
+	animation-duration: .25s;
+	animation-fill-mode: forwards;
+}
+
+
+@keyframes notifFadeIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+.notifFadeIn {
+	animation-name: notifFadeIn;
+	animation-duration: .1s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes notifFadeOut {
+	from {
+		opacity: 1;
+	}
+
+	to {
+		opacity: 0;
+	}
+}
+.notifFadeOut {
+	animation-name: notifFadeOut;
+	animation-duration: .1s;
+	animation-fill-mode: forwards;
+}

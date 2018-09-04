@@ -1,5 +1,24 @@
 var ws = new WebSocket("ws://127.0.0.1:28999");
 
+function sendNotification(type, msg, sticky = false) {
+	let elem = $('<div class="notification"></div>').addClass(type + "Notification");
+
+	switch(type) {
+		case "error":
+			elem.html('<i class="fas fa-fw fa-times-circle"></i> ' + msg);
+			break;
+	}
+
+	elem.addClass("notifFadeIn");
+	$(".notifWrapper").append(elem);
+}
+
+ws.onerror = function(event) {
+	if(event.type == "error") {
+		sendNotification("error", "Error with connection to the remote control master at " + event.srcElement.url);
+	}
+}
+
 var curUptime = 0;
 
 var uptimeLoop = setInterval(function() {
@@ -63,3 +82,23 @@ ws.onmessage = function(event) {
 			break;
 	}
 }
+
+$("#selectorMenuSelected").on("click", function(event) {
+	$("#selectorMenu").show();
+
+	if($(this).hasClass("selectorMenuActive")) {
+		$(this).removeClass("selectorMenuActive");
+		
+		$("#selectorMenuIcon").removeClass("rotate90");
+
+		$("#selectorMenu").removeClass("selectorMenuSlideDown");
+		$("#selectorMenu").addClass("selectorMenuSlideUp");
+	} else {
+		$(this).addClass("selectorMenuActive");
+
+		$("#selectorMenuIcon").addClass("rotate90");
+
+		$("#selectorMenu").addClass("selectorMenuSlideDown");
+		$("#selectorMenu").removeClass("selectorMenuSlideUp");
+	}
+});

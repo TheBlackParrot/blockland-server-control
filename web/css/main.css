@@ -70,9 +70,10 @@ body {
 
 #selectorMenuIcon {
 	font-size: 16pt;
-	margin-right: 8px;
+	margin-right: 12px;
 	float: left;
 	line-height: 64px;
+	transition: .1s;
 }
 
 #selectorMenuSelected .selectorRow {
@@ -266,6 +267,7 @@ body {
 }
 
 #selectorMenu {
+	display: none;
 	position: fixed;
 	left: 0;
 	top: 64px;
@@ -281,4 +283,13 @@ body {
 	line-height: 20px;
 	padding: 16px;
 	border-bottom: 1px solid #ddd;
+}
+
+.selectorMenuActive {
+	background-color: rgba(255, 255, 255, 0.15);
+	transition: .1s;	
+}
+
+#selectorMenu .selectorRow:hover {
+	background-color: rgba(0, 0, 0, 0.1);
 }
