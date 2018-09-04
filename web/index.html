@@ -78,12 +78,33 @@
 		</div>
 		<div class="row">
 			<div class="card" id="consoleCard">
+				<div class="cardTabs">
+					<span class="cardTab" id="consoleCardTab">Console</span>
+					<span class="cardTab" id="playersCardTab">Players</span>
+				</div>
 				<div class="cardContent">
 					hey worlds<br/>
 					wow lines<br/><br/>
 					make this a tabbed interface containing: console input, interactive player list (moderation tools / pings), additional server stats<br/><br/>
 					make the uptime something that just sets Date.now() every second from the time the update stat is set or something
 					<input type="textbox" id="consoleInput" placeholder="Console input...">
+				</div>
+			</div>
+			<div class="card" id="playersCard" style="display: none;">
+				<div class="cardTabs">
+					<span class="cardTab" id="consoleCardTab">Console</span>
+					<span class="cardTab" id="playersCardTab">Players</span>
+				</div>
+				<div class="cardContent">
+					<table id="playerList">
+						<tr>
+							<td></td>
+							<td>Name</td>
+							<td>BLID</td>
+							<td>Connected For</td>
+							<td>Ping</td>
+						</tr>
+					</table>
 				</div>
 			</div>
 			<div class="card" id="chatCard">

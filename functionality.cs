@@ -29,6 +29,8 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 					echo("\c0Missing required argument.");
 				case 4:
 					echo("\c0User already exists for this server.");
+				case 5:
+					echo("\c0Malformed argument.");
 			}
 
 		case "HELLO":
@@ -50,6 +52,12 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 				);
 			
 			timerRC_BrickCountStat();
+			timerRC_PlayerPings();
+
+			for(%i = 0; %i < ClientGroup.getCount(); %i++) {
+				%client = ClientGroup.getObject(%i);
+				RemoteControlTCPLines.send("playerData\tadd" TAB %client._RC_getAllPlayerDataLine());
+			}
 
 		case "NEWACCOUNT":
 			if(isObject(%host)) {
@@ -59,6 +67,31 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 		case "MSG":
 			handleRC_Message(stripMLControlChars(getField(%line, 1)), stripMLControlChars(getField(%line, 2)));
 	}
+}
+
+function GameConnection::_RC_getAllPlayerDataLine(%this) {
+	%rank = 0;
+	if(%this.isAdmin) { %rank = 1; }
+	else if(%this.isSuperAdmin) { %rank = 2; }
+	else if(%this.isModerator) { %rank = 3; } // in case
+	else if(%this.bl_id == getNumKeyID() || %this.bl_id == 999999) { %rank = 4; }
+
+	%group = %this.brickGroup;
+	if(isObject(%group)) {
+		%brickCount = %group.getCount();
+	} else {
+		%brickCount = 0;
+	}
+
+	%line = trim(%this
+		TAB "blid|" @ %this.bl_id
+		TAB "name|" @ strReplace(%this.getPlayerName(), "|", "/")
+		TAB "score|" @ %this.score
+		TAB "rank|" @ %rank
+		TAB "brickcount|" @ %brickCount
+		);
+
+	return %line;
 }
 
 function handleRC_Message(%who, %msg) {
@@ -85,6 +118,26 @@ function timerRC_BrickCountStat() {
 	RemoteControlTCPLines.send("stat\tbricks|" @ getBrickCount());
 }
 
+function timerRC_PlayerPings() {
+	cancel($RemoteControlPlayerPingsLoop);
+	$RemoteControlPlayerPingsLoop = schedule(3000, 0, timerRC_PlayerPings);
+
+	%line = "";
+	for(%i = 0; %i < ClientGroup.getCount(); %i++) {
+		if(%i % 10 == 9) {
+			RemoteControlTCPLines.send("ping" TAB %line);
+			%line = "";
+		}
+
+		%client = ClientGroup.getObject(%i);
+		%line = trim(%line TAB %client SPC %client.getPing() SPC %client.getPacketLoss());
+	}
+
+	if(%line !$= "") {
+		RemoteControlTCPLines.send("ping" TAB %line);
+	}
+}
+
 package RemoteControlPackage {
 	function serverCmdMessageSent(%client, %msg) {
 		RemoteControlTCPLines.send("chat" TAB %client.getPlayerName() TAB stripMLControlChars(%msg));
@@ -95,6 +148,7 @@ package RemoteControlPackage {
 		%r = parent::autoAdminCheck(%client);
 
 		RemoteControlTCPLines.send("stat\tplayers|" @ ClientGroup.getCount() TAB "maxplayers|" @ $Pref::Server::MaxPlayers);
+		RemoteControlTCPLines.send("playerData\tadd" TAB %client._RC_getAllPlayerDataLine());
 
 		return %r;
 	}
@@ -102,7 +156,8 @@ package RemoteControlPackage {
 	function GameConnection::onClientLeaveGame(%client) {
 		%r = parent::onClientLeaveGame(%client);
 
-		RemoteControlTCPLines.send("stat\tplayers|" @ ClientGroup.getCount() TAB "maxplayers|" @ $Pref::Server::MaxPlayers);
+		RemoteControlTCPLines.send("stat\tplayers|" @ ClientGroup.getCount()-1 TAB "maxplayers|" @ $Pref::Server::MaxPlayers);
+		RemoteControlTCPLines.send("playerData\tdel" TAB %client);
 
 		return %r;
 	}

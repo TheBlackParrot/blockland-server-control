@@ -3,11 +3,11 @@ function serverCmdRCSetup(%client) {
 
 	%client.chatMessage("\c2This command will guide you through setting up your server for the Remote Control instance hosted outside Blockland on the same server.");
 	
-	if($Pref::RemoteControl::Identifier $= "") {
+	if($RemoteControl::Identifier $= "") {
 		%client.chatMessage("\c6Your server needs a persistent identifier as anything about your server can change. Run \c4/rcIdent \c3identifier \c6to define one, or use \c3auto \c6to generate one automatically.");
 	}
 
-	if($Pref::RemoteControl::Account[0] $= "") {
+	if($RemoteControl::Account[0] $= "") {
 		%client.chatMessage("\c6You need to set up a user account to access the web GUI. Run \c4/rcAddAccount \c3username \c6to create an account.");
 	}
 }
@@ -15,9 +15,9 @@ function serverCmdRCSetup(%client) {
 function serverCmdRCIdent(%client, %ident) {
 	if(%client.bl_id != getNumKeyID() && %client.bl_id != 999999) { return; }
 
-	if($Pref::RemoteControl::Identifier !$= "") {
+	if($RemoteControl::Identifier !$= "") {
 		%client.chatMessage("\c0!!!! THIS WILL (seemingly) ERASE ANY DATA AND ACCOUNTS YOU MAY HAVE SAVED FOR THIS SERVER !!!!");
-		%client.chatMessage("\c6If you are sure you want to change identifiers, please clear the \c4$Pref::RemoteControl::Identifier \c6variable and run this command again.");
+		%client.chatMessage("\c6If you are sure you want to change identifiers, please clear the \c4$RemoteControl::Identifier \c6variable and run this command again.");
 		for(%i=0;%i<3;%i++) { %client.schedule(250*%i, play2D, errorSound); }
 		return;
 	}
@@ -33,8 +33,9 @@ function serverCmdRCIdent(%client, %ident) {
 
 	%client.chatMessage("\c6Server identifier was changed to \c4" @ %ident);
 	RemoteControlTCPLines.send("connect" TAB %ident);
+	$RemoteControl::Identifier = %ident;
 
-	export("$Pref::RemoteControl*", "config/server/RemoteControl/prefs.cs");
+	export("$RemoteControl*", "config/server/RemoteControl/prefs.cs");
 }
 
 function serverCmdRCAddAccount(%client, %username, %permissionLevel) {

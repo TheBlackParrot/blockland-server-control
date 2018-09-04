@@ -94,7 +94,37 @@ wss.on('connection', function connection(ws) {
 					time: Date.now()
 				};
 				ws.send(JSON.stringify(out));
-				break;			
+				break;
+
+			case "pings":
+				if(!("identifier" in ws)) {
+					return;
+				}
+
+				out = {
+					cmd: "pings",
+					pings: servers[ws.identifier].playerPings,
+					time: Date.now()
+				};
+				ws.send(JSON.stringify(out));
+				break;
+
+			case "players":
+				if(!("identifier" in ws)) {
+					return;
+				}
+
+				for(objID in servers[ws.identifier].playerDetails) {
+					out = {
+						cmd: "playerData",
+						mode: "add",
+						objID: objID,
+						details: servers[ws.identifier].playerDetails[objID],
+						time: Date.now()
+					};
+					ws.send(JSON.stringify(out));
+				}
+				break;
 		}
 	});
 });
@@ -272,7 +302,92 @@ var funcs = {
 			out.details[part[0]] = part[1];
 
 			wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
-		}		
+		}
+	},
+
+	"ping": function(socket, parts) {
+		if(parts.length < 2) {
+			return "ERR\t0";
+		}
+
+		if(!("serverIdentifier" in socket)) {
+			return "ERR\t2";
+		}
+
+		if(!("playerPings" in socket)) {
+			socket.playerPings = {};
+		}
+
+		for(let idx = 1; idx < parts.length; idx++) {
+			let part = parts[idx].split(" ");
+
+			if(part.length < 3) {
+				continue;
+			}
+
+			socket.playerPings[part[0]] = [part[1], part[2]];
+		}	
+	},
+
+	"playerData": function(socket, parts) {
+		if(parts.length < 3) {
+			return "ERR\t0";
+		}
+
+		if(["add", "del"].indexOf(parts[1]) == -1) {
+			return "ERR\t5";
+		}
+
+		if(!("serverIdentifier" in socket)) {
+			return "ERR\t2";
+		}
+
+		if(!("playerDetails" in socket)) {
+			socket.playerDetails = {};
+		}
+
+		let subCmd = parts[1];
+		let objID = parts[2];
+		let now = Date.now();
+
+		let out = {
+			cmd: "playerData",
+			mode: subCmd,
+			objID: objID,
+			time: now
+		}
+
+		if(subCmd == "add") {
+			out.details = {
+				joined: now
+			};
+
+			if(!(objID in socket.playerDetails)) {
+				socket.playerDetails[objID] = {
+					joined: now
+				};
+			}
+
+			for(let idx = 3; idx < parts.length; idx++) {
+				let part = parts[idx].split("|");
+
+				if(part.length < 2) {
+					continue;
+				}
+
+				socket.playerDetails[objID][part[0]] = part[1];
+				out.details[part[0]] = part[1];
+			}
+		} else if(parts[1] == "del") {
+			if(objID in socket.playerDetails) {
+				delete socket.playerDetails[objID];
+			}
+			if(objID in socket.playerPings) {
+				delete socket.playerPings[objID];
+			}
+		}
+
+		wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
 	}
 };
 

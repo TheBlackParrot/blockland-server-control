@@ -32,17 +32,46 @@ function sendNotification(type, msg, sticky = false) {
 
 ws.onerror = function(event) {
 	if(event.type == "error") {
-		sendNotification("error", "Error with connection to the remote control master at " + event.srcElement.url);
+		sendNotification("error", "Error with connection to the remote control master at " + event.target.url);
 	}
 }
 
 ws.onopen = function(event) {
-	sendNotification("success", "Connected to the remote control master at " + event.srcElement.url);
+	sendNotification("success", "Connected to the remote control master at " + event.target.url);
 
 	var out = {
 		cmd: "servers"
 	};
 	ws.send(JSON.stringify(out));
+}
+
+function getPlayerRank(rank = 0) {
+	/*
+		%rank = 0;
+		if(%this.isAdmin) { %rank = 1; }
+		else if(%this.isSuperAdmin) { %rank = 2; }
+		else if(%this.isModerator) { %rank = 3; } // in case
+		else if(%this.bl_id == getNumKeyID() || %this.bl_id === 999999) { %rank = 4; }
+	*/
+	let ranks = ["", "A", "SA", "M", "H"];
+	return ranks[rank];
+}
+
+function getTimeString(value) {
+	value = Math.floor(value);
+
+	let seconds = value % 60;
+	let minutes = Math.floor(value / 60) % 60;
+	let hours = Math.floor(value / 60 / 60) % 24;
+	let days = Math.floor(value / 60 / 60 / 24);
+
+	let out = [];
+	if(days > 0) { out.push(days.toString() + "d"); }
+	if(hours > 0) { out.push(hours.toString() + "h"); }
+	if(minutes > 0) { out.push(minutes.toString() + "m"); }
+	out.push(seconds.toString() + "s");
+
+	return out.join(" ");
 }
 
 var curUptime = 0;
@@ -51,23 +80,46 @@ var uptimeLoop;
 function startLoops() {
 	let uptimeFunc = function() {
 		curUptime++;
-
-		let seconds = curUptime % 60;
-		let minutes = Math.floor(curUptime / 60) % 60;
-		let hours = Math.floor(curUptime / 60 / 60) % 24;
-		let days = Math.floor(curUptime / 60 / 60 / 24);
-
-		$("#uptimeValue").text([days.toString() + "d", hours.toString() + "h", minutes.toString() + "m", seconds.toString() + "s"].join(" "));		
+		$("#uptimeValue").text(getTimeString(curUptime));
 	}
 	uptimeFunc();
-	
+
 	uptimeLoop = setInterval(uptimeFunc, 1000);
+}
+
+var pingLoop;
+function startPlayerLoops() {
+	let pingFunc = function() {
+		var out = {
+			cmd: "pings"
+		}
+
+		ws.send(JSON.stringify(out));
+	}
+	pingFunc();
+
+	let connectedForFunc = function() {
+		for(objID in playerData) {
+			let elapsed = (Date.now() - playerData[objID].joined)/1000;
+			$('.playerRow[data-objid="' + objID + '"] .elapsedValue').text(getTimeString(elapsed));
+		}
+	}
+	connectedForFunc();
+
+	connectedForFunc = setInterval(connectedForFunc, 1000);
+	pingLoop = setInterval(pingFunc, 3000);
 }
 
 function stopLoops() {
 	clearInterval(uptimeLoop);
 }
 
+function stopPlayerLoops() {
+	clearInterval(pingLoop);
+}
+
+var serverData = {};
+var playerData = {};
 ws.onmessage = function(event) {
 	let data = JSON.parse(event.data);
 
@@ -95,6 +147,14 @@ ws.onmessage = function(event) {
 				cmd: "uptime"
 			}
 			ws.send(JSON.stringify(out));
+
+			var out = {
+				cmd: "players"
+			};
+			ws.send(JSON.stringify(out));
+
+			$(".playerRow").remove();
+			$(".wrapper").show();
 			break;
 
 		case "stat":
@@ -127,9 +187,11 @@ ws.onmessage = function(event) {
 
 		case "uptime":
 			curUptime = Math.floor(data.value/1000);
+			startLoops();
 			break;
 
 		case "servers":
+			serverData = data.servers;
 			for(let idx in data.servers) {
 				let server = data.servers[idx];
 				let details = server.details;
@@ -145,6 +207,35 @@ ws.onmessage = function(event) {
 				elem.append($('<span class="selectorAddress">127.0.0.1:28000</span>').text([details.ip, details.port].join(":")));
 
 				$("#selectorMenu").append(elem);
+			}
+			break;
+
+		case "playerData":
+			if(data.mode == "add") {
+				playerData[data.objID] = data.details;
+
+				elem = $('<tr class="playerRow"></tr>').attr("data-objid", data.objID);
+				elem.append($('<td></td>').text(getPlayerRank(parseInt(data.details.rank, 10))));
+				elem.append($('<td></td>').text(data.details.name));
+				elem.append($('<td></td>').text(data.details.blid));
+				elem.append($('<td class="elapsedValue"></td>').text(getTimeString((Date.now() - data.details.joined)/1000)));
+				elem.append($('<td class="pingValue"></td>').text(""));
+
+				$("#playerList").append(elem);
+			} else if(data.mode == "del") {
+				if(data.objID in playerData) {
+					delete playerData[data.objID];
+				}
+
+				$('.playerRow[data-objid="' + data.objID + '"]').remove();
+			}
+			break;
+
+		case "pings":
+			for(let objid in data.pings) {
+				let ping = parseInt(data.pings[objid][0], 10);
+
+				$('.playerRow[data-objid="' + objid + '"] .pingValue').text(ping.toLocaleString() + "ms");
 			}
 			break;
 	}
@@ -183,10 +274,10 @@ $('#selectorMenu').on("click", ".selectorRow", function(event) {
 		ident: $(this).attr("data-identifier")
 	};
 
+	ws.send(JSON.stringify(out));
+
 	$("#selectorMenuSelected .selectorRow").remove();
 	$("#selectorMenuSelected").append($(this).clone());
-
-	ws.send(JSON.stringify(out));
 
 	$('#selectorMenuSelected').removeClass("selectorMenuActive");
 	
@@ -195,10 +286,9 @@ $('#selectorMenu').on("click", ".selectorRow", function(event) {
 	$("#selectorMenu").removeClass("selectorMenuSlideDown");
 	$("#selectorMenu").addClass("selectorMenuSlideUp");
 
-	$(".wrapper").show();
+	$(".wrapper").hide();
 
 	stopLoops();
-	startLoops();
 });
 
 $("#chatInput").keypress(function(e) {
@@ -216,3 +306,22 @@ $("#chatInput").keypress(function(e) {
 		$(this).val("");
 	}
 })
+
+$(".cardTab").on("click", function(event) {
+	$("#consoleCard").hide();
+	$("#playersCard").hide();
+
+	let which = $(this).text();
+	switch(which) {
+		case "Console":
+			stopPlayerLoops();
+			$("#consoleCard").show();
+			break;
+
+		case "Players":
+			stopPlayerLoops();
+			startPlayerLoops();
+			$("#playersCard").show();
+			break;
+	}
+});

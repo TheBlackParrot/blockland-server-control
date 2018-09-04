@@ -122,6 +122,7 @@ body {
 
 .row {
 	display: flex;
+	align-items: flex-end;
 }
 
 .card {
@@ -156,13 +157,18 @@ body {
 	text-align: center;
 }
 
+#consoleCard, #playersCard {
+	width: 70%;
+	position: relative;
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+}
+
 #consoleCard {
 	background-color: #323e4f;
 	font-family: monospace;
 	color: #c2c2d1;
-	width: 70%;
 	line-height: 13pt;
-	position: relative;
 }
 
 #chatCard {
@@ -173,15 +179,23 @@ body {
 	margin-left: 0;
 }
 
-#consoleCard, #chatCard {
+#consoleCard, #chatCard, #playersCard {
 	justify-content: flex-start;
 }
 
 .cardContent {
-	max-height: 400px;
-	min-height: 400px;
 	overflow-y: auto;
 	margin-bottom: 24px;
+}
+
+#consoleCard, #playersCard {
+	height: 357px;
+	max-height: 357px;
+}
+
+#chatCard {
+	height: 400px;
+	max-height: 400px;
 }
 
 #chatCard .cardContent, #chatInput {
@@ -310,4 +324,79 @@ body {
 .disabled {
 	opacity: 0.33;
 	filter: grayscale(66%);
+}
+
+.cardTabs {
+	position: absolute;
+	font-family: "Roboto", sans-serif;
+	font-weight: 700;
+	font-size: 12pt;
+	top: -44px;
+	left: 0px;
+	display: flex;
+	width: 100%;
+	justify-content: space-around;
+}
+.cardTab {
+	padding-top: 12px;
+	padding-bottom: 12px;
+	border-top-right-radius: 12px;
+	border-top-left-radius: 12px;
+	color: #000;
+	flex-grow: 1;
+	text-align: center;
+	line-height: 20px;
+}
+#consoleCardTab {
+	background-color: #323e4f;
+	color: #c2c2d1;
+}
+#playersCardTab {
+	background-color: #fff;
+	color: #000;
+}
+
+#playersCard {
+	background-color: #fff;
+}
+#playersCard .cardContent {
+	width: 100%;
+}
+
+#playerList {
+	width: 100%;
+	line-height: 16pt;
+	table-layout: fixed;
+
+}
+#playerlist tr td {
+	font-size: 12pt;
+	padding: 8px;
+}
+#playerlist tr td:nth-child(1) {
+	width: 32px;
+}
+#playerlist tr td:nth-child(2) {
+}
+#playerlist tr td:nth-child(3) {
+	width: 112px;
+}
+#playerlist tr td:nth-child(4) {
+	width: 176px;
+}
+#playerlist tr td:nth-child(5) {
+	width: 104px;
+	text-align: right;
+}
+#playerlist tr:nth-child(odd) td {
+	background-color: rgba(255, 255, 255, 0.07);
+}
+#playerlist tr:nth-child(even) td {
+	background-color: rgba(0, 0, 0, 0.07);
+}
+#playerlist tr:first-child td {
+	font-size: 16pt;
+	font-weight: 700;
+	border-bottom: 1px solid #000;
+	background-color: transparent;
 }

@@ -32,7 +32,7 @@ function RemoteControlTCPLines::checkToSend(%this) {
 		return;
 	}
 
-	%this.checkToSendSched = %this.schedule(100, checkToSend);
+	%this.checkToSendSched = %this.schedule(33, checkToSend);
 
 	%data = %this.getRowText(0);
 	%this.removeRow(0);
