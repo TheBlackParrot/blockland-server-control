@@ -1,5 +1,9 @@
 const net = require("net");
 const WebSocket = require("ws");
+const crypto = require("crypto");
+const fs = require("fs");
+
+var accounts = require("./accounts.json");
 
 function noop() {}
 
@@ -27,6 +31,12 @@ wss.on('connection', function connection(ws) {
 				if(ws.identifier in servers) {
 					if("serverStats" in servers[ws.identifier]) {
 						var out = {
+							cmd: "acceptIdent",
+							time: Date.now()
+						};
+						ws.send(JSON.stringify(out));
+
+						var out = {
 							cmd: "stat",
 							stats: servers[ws.identifier].serverStats,
 							time: Date.now()
@@ -35,6 +45,19 @@ wss.on('connection', function connection(ws) {
 						ws.send(JSON.stringify(out));
 					}
 				}
+				break;
+
+			case "uptime":
+				if(!("identifier" in ws)) {
+					return;
+				}
+
+				var out = {
+					cmd: "uptime",
+					value: Date.now() - servers[ws.identifier].serverStartedAt,
+					time: Date.now()
+				};
+				ws.send(JSON.stringify(out));
 				break;
 		}
 	});
@@ -84,6 +107,10 @@ var funcs = {
 			return "ERR\t0";
 		}
 
+		if(!("serverIdentifier" in socket)) {
+			return "ERR\t2";
+		}
+
 		let out = {
 			cmd: "chat",
 			who: parts[1],
@@ -97,6 +124,10 @@ var funcs = {
 	"stat": function(socket, parts) {
 		if(parts.length < 2) {
 			return "ERR\t0";
+		}
+
+		if(!("serverIdentifier" in socket)) {
+			return "ERR\t2";
 		}
 
 		if(!("serverStats" in socket)) {
@@ -121,6 +152,54 @@ var funcs = {
 
 			wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
 		}
+	},
+
+	"uptime": function(socket, parts) {
+		if(parts.length < 2) {
+			return "ERR\t0";
+		}
+
+		if(!("serverIdentifier" in socket)) {
+			return "ERR\t2";
+		}
+
+		// fwiw parts[1] is always a string and this hurts to look at
+		socket.serverStartedAt = Date.now() - (parts[1] * 1000);
+	},
+
+	"createAccount": function(socket, parts) {
+		if(parts.length < 2) {
+			return "ERR\t0";
+		}
+
+		if(!("serverIdentifier" in socket)) {
+			return "ERR\t2";
+		}
+
+		if(!(socket.serverIdentifier in accounts)) {
+			accounts[socket.serverIdentifier] = {};
+		}
+
+		if(parts[1] == "") {
+			return "ERR\t3";
+		}
+
+		let pass = crypto.randomBytes(9).toString('base64');
+		let hash = crypto.createHash('sha512').update(pass).digest('hex');
+
+		if(!(parts[1] in accounts[socket.serverIdentifier])) {
+			accounts[socket.serverIdentifier][parts[1]] = {
+				hash: hash,
+				permissionLevel: 0,
+				time: Date.now()
+			};
+		} else {
+			return "ERR\t4";
+		}
+
+		fs.writeFileSync("./accounts.json", JSON.stringify(accounts), {encoding: 'utf8'});
+
+		return "NEWACCOUNT\t" + parts[1] + "\t" + pass;
 	}
 };
 

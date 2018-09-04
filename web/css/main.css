@@ -293,3 +293,8 @@ body {
 #selectorMenu .selectorRow:hover {
 	background-color: rgba(0, 0, 0, 0.1);
 }
+
+.disabled {
+	opacity: 0.33;
+	filter: grayscale(66%);
+}

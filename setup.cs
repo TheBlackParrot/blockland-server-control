@@ -59,7 +59,7 @@ function serverCmdRCAddAccount(%client, %username, %permissionLevel) {
 	}
 
 	%client.chatMessage("\c6Attempting to add user \c4" @ %username @ "\c6 at permission level" SPC %permissionLevel @ ", please wait momentarily for a response...");
-	RemoteControlTCPLines.send("addUser" TAB %username);
+	RemoteControlTCPLines.send("createAccount" TAB %username);
 }
 
 // auto setup script ex at config/server/RemoteControl/auto-setup.cs

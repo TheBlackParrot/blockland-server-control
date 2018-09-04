@@ -7,16 +7,37 @@ function sendNotification(type, msg, sticky = false) {
 		case "error":
 			elem.html('<i class="fas fa-fw fa-times-circle"></i> ' + msg);
 			break;
+
+		case "success":
+			elem.html('<i class="fas fa-fw fa-check-circle"></i> ' + msg);
+			break;
+
+		case "warning":
+			elem.html('<i class="fas fa-fw fa-exclamation-triangle"></i> ' + msg);
+			break;
 	}
 
 	elem.addClass("notifFadeIn");
 	$(".notifWrapper").append(elem);
+
+	if(!sticky) {
+		setTimeout(function() {
+			elem.addClass("notifFadeOut");
+			elem.bind("animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd", function() {
+				$(this).remove();
+			});
+		}, 10000);
+	}
 }
 
 ws.onerror = function(event) {
 	if(event.type == "error") {
 		sendNotification("error", "Error with connection to the remote control master at " + event.srcElement.url);
 	}
+}
+
+ws.onconnected = function(event) {
+	sendNotification("success", "Connected to the remote control master at " + event.srcElement.url);
 }
 
 var curUptime = 0;
@@ -59,26 +80,43 @@ ws.onmessage = function(event) {
 			ws.send(JSON.stringify(out));
 			break;
 
+		case "acceptIdent":
+			var out = {
+				cmd: "uptime"
+			}
+			ws.send(JSON.stringify(out));
+			break;
+
 		case "stat":
 			Object.keys(data.stats).map(function(key) {
+				let value = data.stats[key];
 				switch(key) {
-					case "uptime":
-						curUptime = data.stats[key];
-						break;
-
 					case "bricks":
-						$("#brickCountValue").text(parseInt(data.stats[key], 10).toLocaleString());
+						$("#brickCountValue").text(parseInt(value, 10).toLocaleString());
 						break;
 
 					case "players":
-						$("#playerCount").text(data.stats[key]);
+						$("#playerCount").text(value);
 						break;
 
 					case "maxplayers":
-						$("#playerCountMax").text(data.stats[key]);
-						break;				
+						$("#playerCountMax").text(value);
+						break;
+
+					case "dedicated":
+						if(!parseInt(value, 10)) {
+							$("#restartButton").addClass("disabled");
+							$("#startStopButton").addClass("disabled");
+							
+							sendNotification("warning", "This server is not dedicated, server process management has been disabled.", true);
+						}
+						break;
 				}
 			});
+			break;
+
+		case "uptime":
+			curUptime = Math.floor(data.value/1000);
 			break;
 	}
 }

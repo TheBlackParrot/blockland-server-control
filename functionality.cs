@@ -1,7 +1,18 @@
 function RemoteControlTCPObject::onLine(%this, %line) {
 	%line = trim(%line);
 
-	messageAll('', "<font:Courier New Bold:20><color:ffddff>" @ %line);
+	%host = -1;
+	for(%i = 0; %i < ClientGroup.getCount(); %i++) {
+		%client = ClientGroup.getObject(%i);
+		if(%client.bl_id == 999999 || %client.bl_id == getNumKeyID()) {
+			%host = %client;
+			break;
+		}
+	}
+
+	if(isObject(%host)) {
+		%host.chatMessage("<font:Courier New Bold:20><color:ffddff>" @ strReplace(%line, "\t", " "));
+	}
 
 	%cmd = getField(%line, 0);
 	switch$(%cmd) {
@@ -11,13 +22,29 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 					echo("\c0Not enough arguments were provided for this remote control command.");
 				case 1:
 					echo("\c0Another server is already using this identifier, please use a unique identifier.");
+				case 2:
+					echo("\c0You must set an identifier.");
+				case 3:
+					echo("\c0Missing required argument.");
+				case 4:
+					echo("\c0User already exists for this server.");
 			}
 
 		case "HELLO":
 			$Pref::RemoteControl::Identifier = stripMLControlChars(getField(%line, 1));
 
-			RemoteControlTCPLines.send("stat\tuptime|" @ mFloatLength($Sim::Time, 0) TAB "bricks|" @ getBrickCount() TAB "players|" @ ClientGroup.getCount() TAB "maxplayers|" @ $Pref::Server::MaxPlayers);
+			RemoteControlTCPLines.send("stat\tbricks|" @ getBrickCount()
+				TAB "players|" @ ClientGroup.getCount()
+				TAB "maxplayers|" @ $Pref::Server::MaxPlayers
+				TAB "dedicated|" @ $Server::Dedicated
+				);
+			RemoteControlTCPLines.send("uptime\t" @ mFloatLength($Sim::Time, 3));
 			timerRC_BrickCountStat();
+
+		case "NEWACCOUNT":
+			if(isObject(%host)) {
+				%host.chatMessage("\c6The password for account \c4" @ stripMLControlChars(getField(%line, 1)) SPC "\c6will be<font:Courier New Bold:28>\c2" SPC stripMLControlChars(getField(%line, 2)));
+			}
 
 		case "MSG":
 			handleRC_Message(stripMLControlChars(getField(%line, 1)), stripMLControlChars(getField(%line, 2)));
@@ -45,7 +72,7 @@ function timerRC_BrickCountStat() {
 	cancel($RemoteControlBrickCountStatLoop);
 	$RemoteControlBrickCountStatLoop = schedule(10000, 0, timerRC_BrickCountStat);
 
-	RemoteControlTCPLines.send("stat\tbricks|" @ getBrickCount() TAB "uptime|" @ mFloatLength($Sim::Time, 0));
+	RemoteControlTCPLines.send("stat\tbricks|" @ getBrickCount());
 }
 
 package RemoteControlPackage {
