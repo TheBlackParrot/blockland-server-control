@@ -13,6 +13,7 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 	if(isObject(%host)) {
 		%host.chatMessage("<font:Courier New Bold:20><color:ffddff>" @ strReplace(%line, "\t", " "));
 	}
+	echo("\c7[RC <--]" SPC %line);
 
 	%cmd = getField(%line, 0);
 	switch$(%cmd) {
@@ -36,9 +37,18 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 			RemoteControlTCPLines.send("stat\tbricks|" @ getBrickCount()
 				TAB "players|" @ ClientGroup.getCount()
 				TAB "maxplayers|" @ $Pref::Server::MaxPlayers
-				TAB "dedicated|" @ $Server::Dedicated
 				);
 			RemoteControlTCPLines.send("uptime\t" @ mFloatLength($Sim::Time, 3));
+			RemoteControlTCPLines.send("detail\ttitle|" @ strReplace($Server::Name, "|", "_")
+				TAB "port|" @ $Server::Port
+				TAB "dedicated|" @ $Server::Dedicated
+				TAB "gamemode|" @ $GameModeDisplayName
+				TAB "version|" @ $Version
+				TAB "build|" @ (isFunction(getBuildNumber) ? getBuildNumber() : "N/A")
+				TAB "hostBLID|" @ getNumKeyID()
+				TAB "hostName|" @ $pref::Player::NetName
+				);
+			
 			timerRC_BrickCountStat();
 
 		case "NEWACCOUNT":

@@ -38,6 +38,7 @@ function RemoteControlTCPLines::checkToSend(%this) {
 	%this.removeRow(0);
 
 	RemoteControlTCPObject.send(%data @ "\r\n");
+	echo("\c7[RC -->]" SPC %data);
 }
 
 function RemoteControlTCPObject::onConnected(%this) {

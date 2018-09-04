@@ -49,7 +49,6 @@ wss.on('connection', function connection(ws) {
 							stats: servers[ws.identifier].serverStats,
 							time: Date.now()
 						};
-
 						ws.send(JSON.stringify(out));
 					}
 				}
@@ -87,6 +86,15 @@ wss.on('connection', function connection(ws) {
 
 				wss.broadcast(ws.identifier, JSON.stringify(out));
 				break;
+
+			case "servers":
+				out = {
+					cmd: "servers",
+					servers: gatherServers(),
+					time: Date.now()
+				};
+				ws.send(JSON.stringify(out));
+				break;			
 		}
 	});
 });
@@ -229,6 +237,42 @@ var funcs = {
 		fs.writeFileSync("./accounts.json", JSON.stringify(accounts), {encoding: 'utf8'});
 
 		return "NEWACCOUNT\t" + parts[1] + "\t" + pass;
+	},
+
+	"detail": function(socket, parts) {
+		if(parts.length < 2) {
+			return "ERR\t0";
+		}
+
+		if(!("serverIdentifier" in socket)) {
+			return "ERR\t2";
+		}
+
+		if(!("serverDetails" in socket)) {
+			socket.serverDetails = {
+				ip: socket.remoteAddress,
+				identifier: socket.serverIdentifier
+			};
+		}
+
+		let out = {
+			cmd: "detail",
+			details: {},
+			time: Date.now()
+		}
+
+		for(let idx = 1; idx < parts.length; idx++) {
+			let part = parts[idx].split("|");
+
+			if(part.length < 2) {
+				continue;
+			}
+
+			socket.serverDetails[part[0]] = part[1];
+			out.details[part[0]] = part[1];
+
+			wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
+		}		
 	}
 };
 
@@ -255,6 +299,21 @@ function handle(socket, parts) {
 			send(out);
 		}
 	}
+}
+
+function gatherServers() {
+	let out = [];
+
+	for(let ident in servers) {
+		let socket = servers[ident];
+
+		out.push({
+			identifier: ident,
+			details: socket.serverDetails
+		});
+	}
+
+	return out;
 }
 
 var TCPclients = [];

@@ -36,22 +36,37 @@ ws.onerror = function(event) {
 	}
 }
 
-ws.onconnected = function(event) {
+ws.onopen = function(event) {
 	sendNotification("success", "Connected to the remote control master at " + event.srcElement.url);
+
+	var out = {
+		cmd: "servers"
+	};
+	ws.send(JSON.stringify(out));
 }
 
 var curUptime = 0;
 
-var uptimeLoop = setInterval(function() {
-	curUptime++;
+var uptimeLoop;
+function startLoops() {
+	let uptimeFunc = function() {
+		curUptime++;
 
-	let seconds = curUptime % 60;
-	let minutes = Math.floor(curUptime / 60) % 60;
-	let hours = Math.floor(curUptime / 60 / 60) % 24;
-	let days = Math.floor(curUptime / 60 / 60 / 24);
+		let seconds = curUptime % 60;
+		let minutes = Math.floor(curUptime / 60) % 60;
+		let hours = Math.floor(curUptime / 60 / 60) % 24;
+		let days = Math.floor(curUptime / 60 / 60 / 24);
 
-	$("#uptimeValue").text([days.toString() + "d", hours.toString() + "h", minutes.toString() + "m", seconds.toString() + "s"].join(" "));
-}, 1000);
+		$("#uptimeValue").text([days.toString() + "d", hours.toString() + "h", minutes.toString() + "m", seconds.toString() + "s"].join(" "));		
+	}
+	uptimeFunc();
+	
+	uptimeLoop = setInterval(uptimeFunc, 1000);
+}
+
+function stopLoops() {
+	clearInterval(uptimeLoop);
+}
 
 ws.onmessage = function(event) {
 	let data = JSON.parse(event.data);
@@ -73,12 +88,6 @@ ws.onmessage = function(event) {
 
 		case "needIdent":
 			// temporary
-			var out = {
-				cmd: "setIdent",
-				ident: "28000-645ce1"
-			};
-
-			ws.send(JSON.stringify(out));
 			break;
 
 		case "acceptIdent":
@@ -119,8 +128,34 @@ ws.onmessage = function(event) {
 		case "uptime":
 			curUptime = Math.floor(data.value/1000);
 			break;
+
+		case "servers":
+			for(let idx in data.servers) {
+				let server = data.servers[idx];
+				let details = server.details;
+
+				elem = $('<div class="selectorRow"></div>').attr("data-identifier", details.identifier);
+
+				elem.append($('<span class="selectorHost">Blockhead</span>').text(details.hostName));
+				elem.append($('<span class="selectorTitle">Server</span>').text(details.title));
+				
+				elem.append($('<br/>'));
+				
+				elem.append($('<span class="selectorIdent">(NOTSET-ffffff)</span>').text(details.identifier));
+				elem.append($('<span class="selectorAddress">127.0.0.1:28000</span>').text([details.ip, details.port].join(":")));
+
+				$("#selectorMenu").append(elem);
+			}
+			break;
 	}
 }
+/*
+		<div class="selectorRow">
+			<span class="selectorHost">Goodspot's</span> <span class="selectorTitle">Not Speedkart</span><br/>
+			<span class="selectorIdent">(28002-c12f56)</span> <span class="selectorAddress">192.168.24.3:28002</span><br/>
+			<span class="selectorPermissions">Permission level 2</span>
+		</div>
+*/
 
 $("#selectorMenuSelected").on("click", function(event) {
 	$("#selectorMenu").show();
@@ -140,6 +175,30 @@ $("#selectorMenuSelected").on("click", function(event) {
 		$("#selectorMenu").addClass("selectorMenuSlideDown");
 		$("#selectorMenu").removeClass("selectorMenuSlideUp");
 	}
+});
+
+$('#selectorMenu').on("click", ".selectorRow", function(event) {
+	var out = {
+		cmd: "setIdent",
+		ident: $(this).attr("data-identifier")
+	};
+
+	$("#selectorMenuSelected .selectorRow").remove();
+	$("#selectorMenuSelected").append($(this).clone());
+
+	ws.send(JSON.stringify(out));
+
+	$('#selectorMenuSelected').removeClass("selectorMenuActive");
+	
+	$("#selectorMenuIcon").removeClass("rotate90");
+
+	$("#selectorMenu").removeClass("selectorMenuSlideDown");
+	$("#selectorMenu").addClass("selectorMenuSlideUp");
+
+	$(".wrapper").show();
+
+	stopLoops();
+	startLoops();
 });
 
 $("#chatInput").keypress(function(e) {
