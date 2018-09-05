@@ -59,6 +59,8 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 				RemoteControlTCPLines.send("playerData\tadd" TAB %client._RC_getAllPlayerDataLine());
 			}
 
+			_RC_sendAllRemoteControlModVarData();
+
 		case "NEWACCOUNT":
 			if(isObject(%host)) {
 				%host.chatMessage("\c6The password for account \c4" @ stripMLControlChars(getField(%line, 1)) SPC "\c6will be<font:Courier New Bold:28>\c2" SPC stripMLControlChars(getField(%line, 2)));
@@ -135,6 +137,19 @@ function timerRC_PlayerPings() {
 
 	if(%line !$= "") {
 		RemoteControlTCPLines.send("ping" TAB %line);
+	}
+}
+
+function _RC_sendAllRemoteControlModVarData() {
+	%count = $RemoteControl::ModVarCount;
+
+	for(%i = 0; %i < %count; %i++) {
+		%var = $RemoteControl::ModVar[%i];
+		%type = $RemoteControl::ModVarType[%i];
+		%view = $RemoteControl::ModVarViewPermissionLimit[%i];
+		%edit = $RemoteControl::ModVarEditPermissionLimit[%i];
+
+		RemoteControlTCPLines.send("var" TAB %var TAB %type TAB %view TAB %edit TAB eval("return" SPC getWord($RemoteControl::ModVar[%i], 0) @ ";"));
 	}
 }
 

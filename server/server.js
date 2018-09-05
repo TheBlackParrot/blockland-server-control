@@ -204,6 +204,42 @@ wss.on('connection', function connection(ws) {
 
 				ws.send(JSON.stringify(out));
 				break;
+
+			case "vars":
+				out = {
+					cmd: "vars",
+					vars: {},
+					time: Date.now()
+				};
+
+				if(!("identifier" in ws)) {
+					return;
+				}
+
+				if(!("serverVars" in servers[ws.identifier])) {
+					return;
+				}
+
+				for(let variable in servers[ws.identifier].serverVars) {
+					let varData = servers[ws.identifier].serverVars[variable];
+					let toAdd = {
+						unavailable: true
+					};
+
+					if(checkPermissionLevel(ws, varData.permissionLevel.view)) {
+						toAdd.value = varData.value;
+						toAdd.unavailable = false;
+					} else {
+						toAdd.value = "[value hidden]";
+					}
+
+					toAdd.type = varData.type;
+
+					out.vars[variable] = toAdd;
+				}
+
+				ws.send(JSON.stringify(out));
+				break;
 		}
 	});
 });
@@ -495,6 +531,32 @@ var funcs = {
 		}
 
 		wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
+	},
+
+	"var": function(socket, parts) {
+		if(parts.length < 6) {
+			return "ERR\t0";
+		}
+
+		if(!("serverIdentifier" in socket)) {
+			return "ERR\t2";
+		}
+
+		if(!("serverVars" in socket)) {
+			socket.serverVars = {};
+		}
+
+		// "var" TAB %var TAB %type TAB %view TAB %edit
+		socket.serverVars[parts[1]] = {
+			type: parts[2],
+
+			permissionLevel: {
+				view: parts[3],
+				edit: parts[4]
+			},
+
+			value: parts[5]
+		}
 	}
 };
 

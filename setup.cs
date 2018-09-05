@@ -5,11 +5,10 @@ function serverCmdRCSetup(%client) {
 	
 	if($RemoteControl::Identifier $= "") {
 		%client.chatMessage("\c6Your server needs a persistent identifier as anything about your server can change. Run \c4/rcIdent \c3identifier \c6to define one, or use \c3auto \c6to generate one automatically.");
+		serverCmdRCSetDefaultEditVars();
 	}
 
-	if($RemoteControl::Account[0] $= "") {
-		%client.chatMessage("\c6You need to set up a user account to access the web GUI. Run \c4/rcAddAccount \c3username \c6to create an account.");
-	}
+	%client.chatMessage("\c6You need to set up a user account to access the web GUI. Run \c4/rcAddAccount \c3username \c6to create an account. \c7If you have done this already, ignore this message.");
 }
 
 function serverCmdRCIdent(%client, %ident) {
@@ -52,7 +51,7 @@ function serverCmdRCAddAccount(%client, %username, %permissionLevel) {
 	}
 
 	if(%permissionLevel $= "") {
-		%permissionLevel = 2;
+		%permissionLevel = 0;
 	} else if(%permissionLevel > 4) {
 		%permissionLevel = 4;
 	} else if(%permissionLevel < 0) {
@@ -63,4 +62,88 @@ function serverCmdRCAddAccount(%client, %username, %permissionLevel) {
 	RemoteControlTCPLines.send("createAccount" TAB %username);
 }
 
+function serverCmdRCSetDefaultEditVars(%client) {
+	if(%client.bl_id != getNumKeyID() && %client.bl_id != 999999) { return; }
+
+	$RemoteControl::ModVarCount = 16;
+
+	$RemoteControl::ModVar0 = "$Server::Name $Pref::Server::Name";
+	$RemoteControl::ModVar1 = "$Pref::Server::Port";
+	$RemoteControl::ModVar2 = "$Server::WelcomeMessage $Pref::Server::WelcomeMessage";
+	$RemoteControl::ModVar3 = "$Pref::Server::AdminPassword";
+	$RemoteControl::ModVar4 = "$Pref::Server::SuperAdminPassword";
+	$RemoteControl::ModVar5 = "$Pref::Server::Password";
+	$RemoteControl::ModVar6 = "$Pref::Server::AutoAdminList";
+	$RemoteControl::ModVar7 = "$Pref::Server::AutoSuperAdminList";
+	$RemoteControl::ModVar8 = "$Pref::Server::ETardFilter";
+	$RemoteControl::ModVar9 = "$Pref::Server::ETardList";
+	$RemoteControl::ModVar10 = "$Pref::Server::FallingDamage";
+	$RemoteControl::ModVar11 = "$Pref::Server::MaxBricksPerSecond";
+	$RemoteControl::ModVar12 = "$Pref::Server::MaxPhysVehicles_Total";
+	$RemoteControl::ModVar13 = "$Pref::Server::MaxPlayers";
+	$RemoteControl::ModVar14 = "$Pref::Server::MaxPlayerVehicles_Total";
+	$RemoteControl::ModVar15 = "$Pref::Server::TooFarDistance";
+
+	$RemoteControl::ModVarType0 = "text";
+	$RemoteControl::ModVarType1 = "text";
+	$RemoteControl::ModVarType2 = "text";
+	$RemoteControl::ModVarType3 = "password";
+	$RemoteControl::ModVarType4 = "password";
+	$RemoteControl::ModVarType5 = "password";
+	$RemoteControl::ModVarType6 = "text";
+	$RemoteControl::ModVarType7 = "text";
+	$RemoteControl::ModVarType8 = "text";
+	$RemoteControl::ModVarType9 = "text";
+	$RemoteControl::ModVarType10 = "text";
+	$RemoteControl::ModVarType11 = "text";
+	$RemoteControl::ModVarType12 = "text";
+	$RemoteControl::ModVarType13 = "text";
+	$RemoteControl::ModVarType14 = "text";
+	$RemoteControl::ModVarType15 = "text";
+
+	$RemoteControl::ModVarViewPermissionLimit0 = 0;
+	$RemoteControl::ModVarViewPermissionLimit1 = 0;
+	$RemoteControl::ModVarViewPermissionLimit2 = 0;
+	$RemoteControl::ModVarViewPermissionLimit3 = 2;
+	$RemoteControl::ModVarViewPermissionLimit4 = 4;
+	$RemoteControl::ModVarViewPermissionLimit5 = 1;
+	$RemoteControl::ModVarViewPermissionLimit6 = 0;
+	$RemoteControl::ModVarViewPermissionLimit7 = 0;
+	$RemoteControl::ModVarViewPermissionLimit8 = 0;
+	$RemoteControl::ModVarViewPermissionLimit9 = 0;
+	$RemoteControl::ModVarViewPermissionLimit10 = 0;
+	$RemoteControl::ModVarViewPermissionLimit11 = 0;
+	$RemoteControl::ModVarViewPermissionLimit12 = 0;
+	$RemoteControl::ModVarViewPermissionLimit13 = 0;
+	$RemoteControl::ModVarViewPermissionLimit14 = 0;
+	$RemoteControl::ModVarViewPermissionLimit15 = 0;
+
+	$RemoteControl::ModVarEditPermissionLimit0 = 2;
+	$RemoteControl::ModVarEditPermissionLimit1 = 4;
+	$RemoteControl::ModVarEditPermissionLimit2 = 2;
+	$RemoteControl::ModVarEditPermissionLimit3 = 4;
+	$RemoteControl::ModVarEditPermissionLimit4 = 4;
+	$RemoteControl::ModVarEditPermissionLimit5 = 1;
+	$RemoteControl::ModVarEditPermissionLimit6 = 2;
+	$RemoteControl::ModVarEditPermissionLimit7 = 4;
+	$RemoteControl::ModVarEditPermissionLimit8 = 1;
+	$RemoteControl::ModVarEditPermissionLimit9 = 1;
+	$RemoteControl::ModVarEditPermissionLimit10 = 1;
+	$RemoteControl::ModVarEditPermissionLimit11 = 1;
+	$RemoteControl::ModVarEditPermissionLimit12 = 1;
+	$RemoteControl::ModVarEditPermissionLimit13 = 1;
+	$RemoteControl::ModVarEditPermissionLimit14 = 1;
+	$RemoteControl::ModVarEditPermissionLimit15 = 1;
+
+	_RC_sendAllRemoteControlModVarData();
+
+	export("$RemoteControl*", "config/server/RemoteControl/prefs.cs");
+}
+
 // auto setup script ex at config/server/RemoteControl/auto-setup.cs
+
+// 	%rank = 0;
+//	if(%this.bl_id == getNumKeyID() || %this.bl_id == 999999) { %rank = 4; }
+//	else if(%this.isModerator) { %rank = 3; } // in case
+//	else if(%this.isSuperAdmin) { %rank = 2; }
+//	else if(%this.isAdmin) { %rank = 1; }
