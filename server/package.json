@@ -1,0 +1,20 @@
+{
+  "name": "blockland-remote-control",
+  "version": "1.0.0",
+  "description": "Remotely control a Blockland dedicated server",
+  "main": "server.js",
+  "dependencies": {
+    "ws": "^6.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "TheBlackParrot",
+  "license": "ISC",
+  "homepage": "https://github.com/TheBlackParrot/blockland-server-control",
+  "bugs": {
+    "url": "https://github.com/TheBlackParrot/blockland-server-control/issues"
+  }
+}
