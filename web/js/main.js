@@ -17,12 +17,12 @@ function sendNotification(type, msg, sticky = false) {
 			break;
 	}
 
-	elem.addClass("notifFadeIn");
+	elem.addClass("fadeIn");
 	$(".notifWrapper").append(elem);
 
 	if(!sticky) {
 		setTimeout(function() {
-			elem.addClass("notifFadeOut");
+			elem.addClass("fadeOut");
 			elem.bind("animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd", function() {
 				$(this).remove();
 			});
@@ -118,8 +118,26 @@ function stopPlayerLoops() {
 	clearInterval(pingLoop);
 }
 
+function autoLogin(identifier = activeIdentifier) {
+	let username = localStorage.getItem("username-" + identifier);
+	let hash = localStorage.getItem("hash-" + identifier);
+
+	if(!username || !hash) {
+		console.log("Not automatically logging in, credentials missing.");
+		return;
+	}
+
+	var out = {
+		cmd: "login",
+		username: username,
+		hash: hash
+	};
+	ws.send(JSON.stringify(out));
+}
+
 var serverData = {};
 var playerData = {};
+var activeIdentifier;
 ws.onmessage = function(event) {
 	let data = JSON.parse(event.data);
 
@@ -128,11 +146,18 @@ ws.onmessage = function(event) {
 	switch(data.cmd) {
 		case "chat":
 			var elem = $('<div class="chatRow"></div>');
-			var nameElem = $('<span class="chatName"></span>').text(data.who);
-			if(data.remote) { nameElem.addClass("chatNameRemote"); }
+
 			var msgElem = $('<span class="chatMsg"></span>').text(data.msg);
 
-			elem.append(nameElem);
+			if(!data.system) {
+				var nameElem = $('<span class="chatName"></span>').text(data.who);
+				if(data.remote) { nameElem.addClass("chatNameRemote"); }
+
+				elem.append(nameElem);
+			} else {
+				msgElem.addClass("chatSystemMessage");
+			}
+
 			elem.append(msgElem);
 			
 			$('#allChatRows').append(elem);
@@ -143,6 +168,8 @@ ws.onmessage = function(event) {
 			break;
 
 		case "acceptIdent":
+			activeIdentifier = data.ident;
+
 			var out = {
 				cmd: "uptime"
 			}
@@ -153,8 +180,11 @@ ws.onmessage = function(event) {
 			};
 			ws.send(JSON.stringify(out));
 
+			autoLogin();
+
 			$(".playerRow").remove();
 			$(".wrapper").show();
+			$("#setCredentialsButton").show();
 			break;
 
 		case "stat":
@@ -212,7 +242,15 @@ ws.onmessage = function(event) {
 
 		case "playerData":
 			if(data.mode == "add") {
-				playerData[data.objID] = data.details;
+				if(!(data.objID in playerData)) {
+					playerData[data.objID] = data.details;
+				} else {
+					Object.assign(playerData[data.objID], data.details);
+				}
+
+				if($('.playerRow[data-objid="' + data.objID + '"]').length) {
+					return;
+				}
 
 				elem = $('<tr class="playerRow"></tr>').attr("data-objid", data.objID);
 				elem.append($('<td></td>').text(getPlayerRank(parseInt(data.details.rank, 10))));
@@ -234,8 +272,33 @@ ws.onmessage = function(event) {
 		case "pings":
 			for(let objid in data.pings) {
 				let ping = parseInt(data.pings[objid][0], 10);
+				elem = $('.playerRow[data-objid="' + objid + '"] .pingValue');
 
-				$('.playerRow[data-objid="' + objid + '"] .pingValue').text(ping.toLocaleString() + "ms");
+				elem.text(ping.toLocaleString() + "ms");
+				if(ping > 250) {
+					elem.addClass("warningValue");
+				} else {
+					elem.removeClass("warningValue");
+				}
+			}
+			break;
+
+		case "loginAttempt":
+			$("#submitCredentialsButton").removeClass("disabled");
+
+			if(data.success) {
+				closeDialog();
+				sendNotification("success", "Logged in as " + data.username + " on server " + activeIdentifier);
+
+				localStorage.setItem("username-" + activeIdentifier, data.username);
+				if($("#loginPasswordBox").val()) {
+					localStorage.setItem("hash-" + activeIdentifier, sha512($("#loginPasswordBox").val()));
+				}
+
+				$("#loggedInAs").text("Logged in as " + data.username);
+			} else {
+				$("#loginPasswordBox").val("");
+				$("#loggedInAs").text("Login failed, please try again.");
 			}
 			break;
 	}
@@ -324,4 +387,53 @@ $(".cardTab").on("click", function(event) {
 			$("#playersCard").show();
 			break;
 	}
+});
+
+function closeDialog() {
+	$("#dialogWrapper").addClass("fadeOut");
+	$("#dialogWrapper").removeClass("fadeIn");
+
+	$("#dialogWrapper").one("animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd", function() {
+		if($("#dialogWrapper").hasClass("fadeOut")) { // only once, they said
+			$("#dialogWrapper").hide();
+		}
+	});
+
+	$(".dialog").hide();	
+}
+
+$("#setCredentialsButton").on("click", function(event) {
+	$("#dialogWrapper").removeClass("fadeOut");
+	$("#dialogWrapper").addClass("fadeIn");
+	$("#dialogWrapper").show();
+
+	$(".dialog").hide();
+	$("#loginDialog").show();
+});
+
+$(".closeDialogButton").on("click", function(event) {
+	closeDialog();
+});
+
+$("#submitCredentialsButton").on("click", function(event) {
+	if(!activeIdentifier) {
+		return;
+	}
+
+	if(!$("#loginUsernameBox").val() || !$("#loginPasswordBox").val()) {
+		return;
+	}
+
+	if($(this).hasClass("disabled")) {
+		return;
+	}
+	$(this).addClass("disabled");
+
+	var out = {
+		cmd: "login",
+		username: $("#loginUsernameBox").val(),
+		hash: sha512($("#loginPasswordBox").val())
+	};
+
+	ws.send(JSON.stringify(out));
 });

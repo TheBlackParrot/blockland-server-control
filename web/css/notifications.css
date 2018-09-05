@@ -1,0 +1,31 @@
+.notification {
+	width: 100%;
+	padding-left: 12px;
+	padding-right: 12px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	font-weight: 500;
+	font-size: 12pt;
+	line-height: 20px;
+}
+
+.notification i {
+	margin-right: 4px;
+}
+
+.warningNotification {
+	background-color: #ffe478;
+	color: #000;
+}
+.successNotification {
+	background-color: #3ca370;
+	color: #fff;
+}
+.infoNotification {
+	background-color: #323e4f;
+	color: #fff;
+}
+.errorNotification {
+	background-color: #eb564b;
+	color: #fff;
+}

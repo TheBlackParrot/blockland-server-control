@@ -1,0 +1,51 @@
+.button {
+	display: inline-block;
+	padding-top: 6px;
+	padding-bottom: 6px;
+	padding-left: 12px;
+	padding-right: 12px;
+	text-transform: uppercase;
+	font-weight: 700;
+	border-radius: 6px;
+	box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+	font-size: 10pt;
+	height: 20px;
+	display: unset;
+	transition: .1s;
+	background-color: #8fde5d;
+	color: #000;
+	cursor: default;
+}
+
+.button:hover {
+	background-color: #000 !important;
+	color: #fff !important;
+	transition: .1s;
+}
+
+#startStopButtons, #miscButtons {
+	float: right;
+}
+
+#miscButtons {
+	margin-right: 48px;
+}
+
+#startStopButtons .button {
+	margin-left: 8px;
+}
+
+#startStopButton {
+	background-color: #eb564b;
+	color: #fff;
+}
+
+#restartButton {
+	background-color: #ffe478;
+	color: #000;
+}
+
+.disabled {
+	opacity: 0.33;
+	filter: grayscale(66%);
+}

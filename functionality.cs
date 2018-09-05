@@ -71,10 +71,10 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 
 function GameConnection::_RC_getAllPlayerDataLine(%this) {
 	%rank = 0;
-	if(%this.isAdmin) { %rank = 1; }
-	else if(%this.isSuperAdmin) { %rank = 2; }
+	if(%this.bl_id == getNumKeyID() || %this.bl_id == 999999) { %rank = 4; }
 	else if(%this.isModerator) { %rank = 3; } // in case
-	else if(%this.bl_id == getNumKeyID() || %this.bl_id == 999999) { %rank = 4; }
+	else if(%this.isSuperAdmin) { %rank = 2; }
+	else if(%this.isAdmin) { %rank = 1; }
 
 	%group = %this.brickGroup;
 	if(isObject(%group)) {
@@ -158,6 +158,15 @@ package RemoteControlPackage {
 
 		RemoteControlTCPLines.send("stat\tplayers|" @ ClientGroup.getCount()-1 TAB "maxplayers|" @ $Pref::Server::MaxPlayers);
 		RemoteControlTCPLines.send("playerData\tdel" TAB %client);
+
+		return %r;
+	}
+
+	function fxDTSBrick::onPlant(%this) {
+		%r = parent::onPlant(%this);
+
+		%count = %this.getGroup().getCount();
+		RemoteControlTCPLines.send("playerData\tadd" TAB %this.client TAB "brickcount|" @ %count);
 
 		return %r;
 	}

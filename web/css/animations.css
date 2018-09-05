@@ -34,7 +34,7 @@
 }
 
 
-@keyframes notifFadeIn {
+@keyframes fadeIn {
 	from {
 		opacity: 0;
 	}
@@ -43,13 +43,13 @@
 		opacity: 1;
 	}
 }
-.notifFadeIn {
-	animation-name: notifFadeIn;
+.fadeIn {
+	animation-name: fadeIn;
 	animation-duration: .1s;
 	animation-fill-mode: forwards;
 }
 
-@keyframes notifFadeOut {
+@keyframes fadeOut {
 	from {
 		opacity: 1;
 	}
@@ -58,8 +58,8 @@
 		opacity: 0;
 	}
 }
-.notifFadeOut {
-	animation-name: notifFadeOut;
+.fadeOut {
+	animation-name: fadeOut;
 	animation-duration: .1s;
 	animation-fill-mode: forwards;
 }

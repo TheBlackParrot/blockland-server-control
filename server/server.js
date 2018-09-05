@@ -34,12 +34,15 @@ wss.on('connection', function connection(ws) {
 
 		switch(data.cmd) {
 			case "setIdent":
-				ws.identifier = data.ident;
+				if(data.ident in servers) {
+					ws.loggedInAs = undefined;
 
-				if(ws.identifier in servers) {
+					ws.identifier = data.ident;
+
 					if("serverStats" in servers[ws.identifier]) {
 						out = {
 							cmd: "acceptIdent",
+							ident: ws.identifier,
 							time: Date.now()
 						};
 						ws.send(JSON.stringify(out));
@@ -73,14 +76,19 @@ wss.on('connection', function connection(ws) {
 					return;
 				}
 
-				out = "MSG\tNAMES_TODO\t" + data.msg;
+				if(!ws.loggedInAs) {
+					return;
+				}
+
+				out = "MSG\t" + ws.loggedInAs + "\t" + data.msg;
 				servers[ws.identifier].write(out + "\r\n");
 
 				out = {
 					cmd: "chat",
-					who: "NAMES_TODO",
+					who: ws.loggedInAs,
 					msg: data.msg,
 					remote: true,
+					system: false,
 					time: Date.now()
 				};
 
@@ -124,6 +132,50 @@ wss.on('connection', function connection(ws) {
 					};
 					ws.send(JSON.stringify(out));
 				}
+				break;
+
+			case "login":
+				out = {
+					cmd: "loginAttempt",
+					success: false,
+					time: Date.now()
+				};
+
+				if("lastLoginAttempt" in ws) {
+					if(Date.now() - ws.lastLoginAttempt < 1500) {
+						ws.send(JSON.stringify(out));
+						return;
+					}
+				}
+
+				ws.lastLoginAttempt = Date.now();
+
+				if(!("identifier" in ws)) {
+					ws.send(JSON.stringify(out));
+					return;
+				}
+
+				if(!("username" in data) || !("hash" in data)) {
+					ws.send(JSON.stringify(out));
+					return;
+				}
+
+				if(!(data.username in accounts[ws.identifier])) {
+					ws.send(JSON.stringify(out));
+					return;
+				}
+
+				if(data.hash != accounts[ws.identifier][data.username].hash) {
+					ws.send(JSON.stringify(out));
+					return;
+				}
+
+				out.success = true;
+				out.username = data.username;
+
+				ws.loggedInAs = data.username;
+
+				ws.send(JSON.stringify(out));
 				break;
 		}
 	});
@@ -182,6 +234,7 @@ var funcs = {
 			who: parts[1],
 			msg: parts[2],
 			remote: false,
+			system: false,
 			time: Date.now()
 		};
 
@@ -358,13 +411,20 @@ var funcs = {
 		}
 
 		if(subCmd == "add") {
-			out.details = {
-				joined: now
-			};
+			broadcastConnectMsg = false;
 
 			if(!(objID in socket.playerDetails)) {
 				socket.playerDetails[objID] = {
 					joined: now
+				};
+
+				out.details = {
+					joined: now
+				};
+
+				broadcastConnectMsg = true;
+			} else {
+				out.details = {
 				};
 			}
 
@@ -375,11 +435,31 @@ var funcs = {
 					continue;
 				}
 
+				if(broadcastConnectMsg && part[0] == "name") {
+					let out2 = {
+						cmd: "chat",
+						msg: part[1] + " connected",
+						remote: false,
+						system: true,
+						time: Date.now()
+					};
+					wss.broadcast(socket.serverIdentifier, JSON.stringify(out2));
+				}
+
 				socket.playerDetails[objID][part[0]] = part[1];
 				out.details[part[0]] = part[1];
 			}
 		} else if(parts[1] == "del") {
 			if(objID in socket.playerDetails) {
+				let out2 = {
+					cmd: "chat",
+					msg: socket.playerDetails[objID].name + " left the game",
+					remote: false,
+					system: true,
+					time: Date.now()
+				};
+				wss.broadcast(socket.serverIdentifier, JSON.stringify(out2));
+
 				delete socket.playerDetails[objID];
 			}
 			if(objID in socket.playerPings) {

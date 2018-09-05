@@ -3,76 +3,59 @@
 <head>
 	<link rel="stylesheet" type="text/css" href="css/reset.css">
 	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<link rel="stylesheet" type="text/css" href="css/ui.css">
+	<link rel="stylesheet" type="text/css" href="css/selectorMenu.css">
+	<link rel="stylesheet" type="text/css" href="css/notifications.css">
+	<link rel="stylesheet" type="text/css" href="css/playerList.css">
+	<link rel="stylesheet" type="text/css" href="css/dialog.css">
 	<link rel="stylesheet" type="text/css" href="css/all.min.css">
 	<link rel="stylesheet" type="text/css" href="css/animations.css">
 
 	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/sha512.min.js"></script>
 </head>
 
 <body>
+	<div id="dialogWrapper" style="display: none;">
+		<div class="dialog" id="loginDialog" style="display: none;">
+			<span id="loggedInAs">Not currently logged in.</span>
+			<br/><br/>
+			<input type="textbox" name="username" placeholder="Username" id="loginUsernameBox"><br/>
+			<input type="password" name="password" placeholder="Password" id="loginPasswordBox"><br/>
+			<div class="dialogButtons">
+				<div class="button closeDialogButton">Cancel</div>
+				<div class="button" id="submitCredentialsButton">Login</div>
+			</div>
+		</div>
+	</div>
 	<div id="header">
 		<div id="selectorMenuSelected">
 			<i class="fas fa-angle-right" id="selectorMenuIcon"></i> 
-			<!--
-			<div class="selectorRow">
-				<span class="selectorHost">Blockhead647362's</span> <span class="selectorTitle">Family RP</span><br/>
-				<span class="selectorIdent">(28000-7f37ab)</span> <span class="selectorAddress">192.168.24.3:28000</span>
-			</div>
-			-->
 		</div>
 		<div id="startStopButtons">
 			<div class="button" id="restartButton"><i class="fas fa-sync-alt"></i> Restart</div>
 			<div class="button" id="startStopButton"><i class="fas fa-power-off"></i> Shutdown</div>
 		</div>
+		<div id="miscButtons">
+			<div class="button" style="display: none;" id="setCredentialsButton"><i class="fas fa-user"></i> Set Credentials</div>
+		</div>
 	</div>
 	<div id="selectorMenu">
-		<!--
-		<div class="selectorRow">
-			<span class="selectorHost">Blockhead647362's</span> <span class="selectorTitle">Family RP</span><br/>
-			<span class="selectorIdent">(28000-7f37ab)</span> <span class="selectorAddress">192.168.24.3:28000</span><br/>
-			<span class="selectorPermissions">No permissions</span>
-		</div>
-		<div class="selectorRow">
-			<span class="selectorHost">TheBlackParrot's</span> <span class="selectorTitle">Super duper secret server</span><br/>
-			<span class="selectorIdent">(28001-5ff991)</span> <span class="selectorAddress">192.168.24.3:28001</span><br/>
-			<span class="selectorPermissions">Permission level 4</span>
-		</div>
-		<div class="selectorRow">
-			<span class="selectorHost">Goodspot's</span> <span class="selectorTitle">Not Speedkart</span><br/>
-			<span class="selectorIdent">(28002-c12f56)</span> <span class="selectorAddress">192.168.24.3:28002</span><br/>
-			<span class="selectorPermissions">Permission level 2</span>
-		</div>
-		<div class="selectorRow">
-			<span class="selectorHost">noob killer's</span> <span class="selectorTitle">shoot the zombies!!!! (GUNS!)</span><br/>
-			<span class="selectorIdent">(28003-985c63)</span> <span class="selectorAddress">192.168.24.3:28003</span><br/>
-			<span class="selectorPermissions">No permissions</span>
-		</div>
-		<div class="selectorRow">
-			<span class="selectorHost">GOODBOYE382's</span> <span class="selectorTitle">poop</span><br/>
-			<span class="selectorIdent">(poop)</span> <span class="selectorAddress">192.168.24.3:28004</span><br/>
-			<span class="selectorPermissions">No permissions</span>
-		</div>
-		<div class="selectorRow">
-			<span class="selectorHost">King Brony's</span> <span class="selectorTitle">Grocery Store Castle</span><br/>
-			<span class="selectorIdent">(28005-4dbde0)</span> <span class="selectorAddress">192.168.24.3:28005</span><br/>
-			<span class="selectorPermissions">No permissions</span>
-		</div>
-		-->
 	</div>
 	<div class="wrapper" style="display: none;">
 		<div class="row">
 			<div class="card" id="generalStatusCard">
 				<div class="cardContentFlex" id="playerCard">
 					<h1>Players</h1>
-					<span id="playerCount">13</span> / <span id="playerCountMax">48</span>
+					<span id="playerCount">-</span> / <span id="playerCountMax">-</span>
 				</div>
 				<div class="cardContentFlex" id="uptimeCard">
 					<h1>Uptime</h1>
-					<span id="uptimeValue">26d 11h 42m 58s</span>
+					<span id="uptimeValue">-</span>
 				</div>
 				<div class="cardContentFlex" id="brickCountCard">
 					<h1>Bricks</h1>
-					<span id="brickCountValue">32,581</span>
+					<span id="brickCountValue">-</span>
 				</div>
 			</div>
 		</div>
@@ -80,7 +63,7 @@
 			<div class="card" id="consoleCard">
 				<div class="cardTabs">
 					<span class="cardTab" id="consoleCardTab">Console</span>
-					<span class="cardTab" id="playersCardTab">Players</span>
+					<span class="cardTab tabInactive" id="playersCardTab">Players</span>
 				</div>
 				<div class="cardContent">
 					hey worlds<br/>
@@ -92,7 +75,7 @@
 			</div>
 			<div class="card" id="playersCard" style="display: none;">
 				<div class="cardTabs">
-					<span class="cardTab" id="consoleCardTab">Console</span>
+					<span class="cardTab tabInactive" id="consoleCardTab">Console</span>
 					<span class="cardTab" id="playersCardTab">Players</span>
 				</div>
 				<div class="cardContent">

@@ -16,103 +16,6 @@ body {
 	z-index: 2;
 }
 
-.button {
-	display: inline-block;
-	padding-top: 6px;
-	padding-bottom: 6px;
-	padding-left: 12px;
-	padding-right: 12px;
-	text-transform: uppercase;
-	font-weight: 700;
-	border-radius: 6px;
-	box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
-	font-size: 10pt;
-	height: 20px;
-	display: unset;
-	transition: .1s;
-}
-
-.button:hover {
-	background-color: #000 !important;
-	color: #fff !important;
-	transition: .1s;
-}
-
-#startStopButtons {
-	float: right;
-}
-
-#startStopButtons .button {
-	margin-left: 8px;
-}
-
-#startStopButton {
-	background-color: #eb564b;
-	color: #fff;
-}
-
-#restartButton {
-	background-color: #ffe478;
-	color: #000;
-}
-
-#selectorMenuSelected {
-	position: fixed;
-	left: 0;
-	padding-left: 16px;
-	padding-right: 16px;
-	transition: .1s;
-	min-width: 400px;
-}
-#selectorMenuSelected:hover {
-	background-color: rgba(255, 255, 255, 0.15);
-	transition: .1s;
-}
-
-#selectorMenuIcon {
-	font-size: 16pt;
-	margin-right: 12px;
-	float: left;
-	line-height: 64px;
-	transition: .1s;
-}
-
-#selectorMenuSelected .selectorRow {
-	display: table-cell;
-	vertical-align: middle;
-	height: 64px;
-	line-height: 20px;
-}
-
-.selectorHost {
-	font-style: italic;
-}
-.selectorHost::after {
-	content: "'s ";
-}
-.selectorTitle {
-	font-weight: 700;
-}
-.selectorAddress {
-	opacity: 0.5;
-	font-size: 8pt;
-}
-.selectorIdent {
-	opacity: 0.66;
-	font-weight: 700;
-	font-size: 10pt;
-}
-.selectorIdent::before {
-	content: "(";
-}
-.selectorIdent::after {
-	content: ") ";
-}
-.selectorPermissions {
-	opacity: 0.33;
-	font-size: 8pt;
-}
-
 .wrapper {
 	position: absolute;
 	top: 64px;
@@ -209,15 +112,18 @@ body {
 	max-width: 100%;
 }
 
+.chatName::after {
+	content: ": ";
+	color: white;
+}
 .chatName {
 	color: yellow;
 }
 .chatNameRemote {
 	color: lime;
 }
-.chatName::after {
-	content: ": ";
-	color: white;
+.chatSystemMessage {
+	color: paleturquoise;
 }
 
 .chatRow {
@@ -261,71 +167,6 @@ body {
 	box-shadow: 0px 0px 6px rgba(0, 0, 0, 1);
 }
 
-.notification {
-	width: 100%;
-	padding-left: 12px;
-	padding-right: 12px;
-	padding-top: 8px;
-	padding-bottom: 8px;
-	font-weight: 500;
-	font-size: 12pt;
-	line-height: 20px;
-}
-
-.notification i {
-	margin-right: 4px;
-}
-
-.warningNotification {
-	background-color: #ffe478;
-	color: #000;
-}
-.successNotification {
-	background-color: #3ca370;
-	color: #fff;
-}
-.infoNotification {
-	background-color: #323e4f;
-	color: #fff;
-}
-.errorNotification {
-	background-color: #eb564b;
-	color: #fff;
-}
-
-#selectorMenu {
-	display: none;
-	position: fixed;
-	left: 0;
-	top: 64px;
-	z-index: 1;
-	max-width: 350px;
-	background-color: #fff;
-	box-shadow: 0px 0px 6px rgba(0, 0, 0, 1);
-	max-height: calc(100vh - 64px);
-	overflow-y: auto;
-}
-
-#selectorMenu .selectorRow {
-	line-height: 20px;
-	padding: 16px;
-	border-bottom: 1px solid #ddd;
-}
-
-.selectorMenuActive {
-	background-color: rgba(255, 255, 255, 0.15);
-	transition: .1s;	
-}
-
-#selectorMenu .selectorRow:hover {
-	background-color: rgba(0, 0, 0, 0.1);
-}
-
-.disabled {
-	opacity: 0.33;
-	filter: grayscale(66%);
-}
-
 .cardTabs {
 	position: absolute;
 	font-family: "Roboto", sans-serif;
@@ -346,6 +187,7 @@ body {
 	flex-grow: 1;
 	text-align: center;
 	line-height: 20px;
+    border-top: 3px solid rgba(255, 255, 255, 0.15);
 }
 #consoleCardTab {
 	background-color: #323e4f;
@@ -363,40 +205,9 @@ body {
 	width: 100%;
 }
 
-#playerList {
-	width: 100%;
-	line-height: 16pt;
-	table-layout: fixed;
-
-}
-#playerlist tr td {
-	font-size: 12pt;
-	padding: 8px;
-}
-#playerlist tr td:nth-child(1) {
-	width: 32px;
-}
-#playerlist tr td:nth-child(2) {
-}
-#playerlist tr td:nth-child(3) {
-	width: 112px;
-}
-#playerlist tr td:nth-child(4) {
-	width: 176px;
-}
-#playerlist tr td:nth-child(5) {
-	width: 104px;
-	text-align: right;
-}
-#playerlist tr:nth-child(odd) td {
-	background-color: rgba(255, 255, 255, 0.07);
-}
-#playerlist tr:nth-child(even) td {
-	background-color: rgba(0, 0, 0, 0.07);
-}
-#playerlist tr:first-child td {
-	font-size: 16pt;
-	font-weight: 700;
-	border-bottom: 1px solid #000;
-	background-color: transparent;
+.tabInactive {
+	height: 10px;
+	line-height: 10px;
+	position: relative;
+	top: 10px;
 }

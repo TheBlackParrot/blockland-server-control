@@ -1,0 +1,41 @@
+#playerList {
+	width: 100%;
+	line-height: 16pt;
+	table-layout: fixed;
+
+}
+#playerlist tr td {
+	font-size: 12pt;
+	padding: 8px;
+}
+#playerlist tr td:nth-child(1) {
+	width: 32px;
+}
+#playerlist tr td:nth-child(2) {
+}
+#playerlist tr td:nth-child(3) {
+	width: 112px;
+}
+#playerlist tr td:nth-child(4) {
+	width: 176px;
+}
+#playerlist tr td:nth-child(5) {
+	width: 104px;
+	text-align: right;
+}
+#playerlist tr:nth-child(odd) td {
+	background-color: rgba(255, 255, 255, 0.07);
+}
+#playerlist tr:nth-child(even) td {
+	background-color: rgba(0, 0, 0, 0.07);
+}
+#playerlist tr:first-child td {
+	font-size: 16pt;
+	font-weight: 700;
+	border-bottom: 1px solid #000;
+	background-color: transparent;
+}
+
+#playerlist .warningValue {
+	color: crimson;
+}
