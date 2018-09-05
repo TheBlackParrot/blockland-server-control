@@ -1,4 +1,4 @@
-var ws = new WebSocket("ws://127.0.0.1:28999");
+var ws = new WebSocket("ws://10.161.8.254:28999");
 
 function sendNotification(type, msg, sticky = false) {
 	let elem = $('<div class="notification"></div>').addClass(type + "Notification");

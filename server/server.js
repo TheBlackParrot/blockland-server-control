@@ -11,15 +11,43 @@ if(os.type() == "Windows_NT") {
 }
 
 var accounts = require("./accounts.json");
+var settings = require("./settings.json");
 
 function noop() {}
 
 const wss = new WebSocket.Server({
-	port: 28999
+	host: settings.ws.ip,
+	port: settings.ws.port
 });
 function heartbeat() {
 	this.isAlive = true;
 }
+
+function checkPermissionLevel(ws, required) {
+	if(!ws.loggedInAs) {
+		return false;
+	}
+
+	if(!ws.identifier) {
+		return false;
+	}
+
+	if(!(ws.identifier in accounts)) {
+		return false;
+	}
+
+	if(!(ws.loggedInAs in accounts[ws.identifier])) {
+		return false;
+	}
+
+	let level = accounts[ws.identifier][ws.loggedInAs].permissionLevel;
+	if(level < required) {
+		return false;
+	}
+
+	return true;
+}
+
 wss.on('connection', function connection(ws) {
 	ws.isAlive = true;
 	ws.on('pong', heartbeat);
@@ -71,12 +99,11 @@ wss.on('connection', function connection(ws) {
 				break;
 
 			case "chat":
-				// TODO: permissions
 				if(!("identifier" in ws)) {
 					return;
 				}
 
-				if(!ws.loggedInAs) {
+				if(!checkPermissionLevel(ws, 2)) {
 					return;
 				}
 
@@ -549,4 +576,4 @@ net.createServer(function(socket) {
 
 		TCPclients.splice(TCPclients.indexOf(socket), 1);
 	});
-}).listen(28900, "127.0.0.1");
+}).listen(settings.tcp.port, "127.0.0.1");
