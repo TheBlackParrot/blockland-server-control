@@ -74,6 +74,20 @@ function getTimeString(value) {
 	return out.join(" ");
 }
 
+function formatDate(timestamp = Date.now()) {
+	let d = new Date(timestamp);
+
+	let month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getMonth()];
+	let day = d.getDate();
+	let year = d.getFullYear();
+
+	let hours = d.getHours();
+	let minutes = ("00" + d.getMinutes()).substr(-2, 2);
+	let seconds = ("00" + d.getSeconds()).substr(-2, 2);
+
+	return [[month, day, year].join(" "), [hours, minutes, seconds].join(":")].join(", ");
+}
+
 var curUptime = 0;
 
 var uptimeLoop;
@@ -102,6 +116,10 @@ function startPlayerLoops() {
 		for(objID in playerData) {
 			let elapsed = (Date.now() - playerData[objID].joined)/1000;
 			$('.playerRow[data-objid="' + objID + '"] .elapsedValue').text(getTimeString(elapsed));
+
+			if(viewingPlayer == objID) {
+				$("#playerStatTableElapsed").text(formatDate(playerData[objID].joined)).append($('<span class="dialogSmallText"></span>').text("(" + getTimeString(elapsed) + " ago)"));
+			}
 		}
 	}
 	connectedForFunc();
@@ -170,6 +188,8 @@ ws.onmessage = function(event) {
 		case "acceptIdent":
 			activeIdentifier = data.ident;
 
+			autoLogin();
+
 			var out = {
 				cmd: "uptime"
 			}
@@ -179,8 +199,6 @@ ws.onmessage = function(event) {
 				cmd: "players"
 			};
 			ws.send(JSON.stringify(out));
-
-			autoLogin();
 
 			$(".playerRow").remove();
 			$(".wrapper").show();
@@ -274,11 +292,18 @@ ws.onmessage = function(event) {
 				let ping = parseInt(data.pings[objid][0], 10);
 				elem = $('.playerRow[data-objid="' + objid + '"] .pingValue');
 
+				playerData[objid].ping = data.pings[objid][0];
+				playerData[objid].packetLoss = data.pings[objid][1];
+
 				elem.text(ping.toLocaleString() + "ms");
 				if(ping > 250) {
 					elem.addClass("warningValue");
 				} else {
 					elem.removeClass("warningValue");
+				}
+
+				if(viewingPlayer == objid) {
+					$("#playerStatTablePing").text(data.pings[objid][0].toLocaleString() + "ms").append($('<span class="dialogSmallText"></span>').text("(PL " + data.pings[objid][1].toLocaleString() + ")"));
 				}
 			}
 			break;
@@ -402,13 +427,17 @@ function closeDialog() {
 	$(".dialog").hide();	
 }
 
-$("#setCredentialsButton").on("click", function(event) {
+function showDialog(which) {
 	$("#dialogWrapper").removeClass("fadeOut");
 	$("#dialogWrapper").addClass("fadeIn");
 	$("#dialogWrapper").show();
 
 	$(".dialog").hide();
-	$("#loginDialog").show();
+	$(which).show();	
+}
+
+$("#setCredentialsButton").on("click", function(event) {
+	showDialog("#loginDialog");
 });
 
 $(".closeDialogButton").on("click", function(event) {
@@ -436,4 +465,27 @@ $("#submitCredentialsButton").on("click", function(event) {
 	};
 
 	ws.send(JSON.stringify(out));
+});
+
+var viewingPlayer;
+$("body").on("click", ".playerRow", function(event) {
+	let objID = $(this).attr("data-objid");
+	console.log("wants " + objID);
+
+	viewingPlayer = objID;
+
+	let data = playerData[objID];
+
+	$("#playerStatDialogName").text(data.name);
+	$("#playerStatTableObjID").text(objID);
+	$("#playerStatTableBLID").text(data.blid);
+	$("#playerStatTableRank").text(getPlayerRank(data.rank));
+	$("#playerStatTableIP").text(data.ip);
+	$("#playerStatTableElapsed").text(formatDate(data.joined)).append($('<span class="dialogSmallText"></span>').text("(" + getTimeString(Math.floor((Date.now() - data.joined)/1000)) + " ago)"));
+	$("#playerStatTablePing").text(data.ping.toLocaleString() + "ms").append($('<span class="dialogSmallText"></span>').text("(PL " + data.packetLoss.toLocaleString() + ")"));
+	$("#playerStatTableScore").text(data.score.toLocaleString());
+	$("#playerStatTableBricks").text(data.brickcount.toLocaleString());
+	$("#playerStatTableAFK").text(parseInt(data.afk, 10) ? "Yes" : "No");
+
+	showDialog("#playerDialog");
 });

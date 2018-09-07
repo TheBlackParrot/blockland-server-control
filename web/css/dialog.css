@@ -49,3 +49,42 @@
 	margin-top: 16px;
 	text-align: center;
 }
+
+.dialogHeader {
+	padding: 24px;
+	background-color: rgba(0, 0, 0, 0.33);
+	font-size: 20pt;
+	font-weight: 300;
+}
+.dialogHeader .closeDialogButton {
+	float: right;
+}
+
+#playerDialog {
+	padding: 0;
+	width: 500px;
+}
+
+.dialogContent {
+	padding: 24px;
+	color: #fff;
+	line-height: 17pt;
+}
+
+.dialogSmallText {
+	margin-left: 8px;
+	margin-right: 8px;
+	font-size: 10pt;
+	opacity: 0.33;
+}
+
+#playerStatTable {
+	color: #fff;
+	table-layout: fixed;
+}
+
+#playerStatTable tr td:nth-child(1) {
+	width: 128px;
+	font-weight: 700;
+	opacity: 0.75;
+}

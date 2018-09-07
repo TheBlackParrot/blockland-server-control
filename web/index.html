@@ -27,6 +27,63 @@
 				<div class="button" id="submitCredentialsButton">Login</div>
 			</div>
 		</div>
+
+		<div class="dialog" id="playerDialog" style="display: none;">
+			<div class="dialogHeader">
+				<span id="playerStatDialogName">PlayerName39382</span>
+				<span class="closeDialogButton"><i class="fas fa-times-circle"></i></span>
+			</div>
+
+<!--
+	%line = trim(%this
+		TAB "blid|" @ %this.bl_id
+		TAB "name|" @ strReplace(%this.getPlayerName(), "|", "/")
+		TAB "score|" @ %this.score
+		TAB "rank|" @ %rank
+		TAB "brickcount|" @ %brickCount
+		);
+-->
+			<div class="dialogContent">
+				<table id="playerStatTable">
+					<tr>
+						<td>Object ID</td>
+						<td id="playerStatTableObjID">1726372</td>
+					</tr>
+					<tr>
+						<td>Blockland ID</td>
+						<td id="playerStatTableBLID">999999</td>
+					</tr>
+					<tr>
+						<td>Rank</td>
+						<td id="playerStatTableRank">Super Admin</td>
+					</tr>
+					<tr>
+						<td>IP Address</td>
+						<td id="playerStatTableIP">255.255.255.255</td>
+					</tr>
+					<tr>
+						<td>Connected At</td>
+						<td id="playerStatTableElapsed">Sep 5 2018, 23:25:41 <span class="dialogSmallText">(10d 10h 10m 10s)</span></td>
+					</tr>
+					<tr>
+						<td>Ping</td>
+						<td id="playerStatTablePing">1,241ms <span class="dialogSmallText">(8,392 PL)</span></td>
+					</tr>
+					<tr>
+						<td>Score</td>
+						<td id="playerStatTableScore">0</td>
+					</tr>
+					<tr>
+						<td>Bricks</td>
+						<td id="playerStatTableBricks">1,001,281</td>
+					</tr>
+					<tr>
+						<td>AFK</td>
+						<td id="playerStatTableAFK">Yes</td>
+					</tr>
+				</table>
+			</div>
+		</div>
 	</div>
 	<div id="header">
 		<div id="selectorMenuSelected">

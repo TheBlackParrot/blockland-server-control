@@ -49,6 +49,32 @@ function checkPermissionLevel(ws, required) {
 	return true;
 }
 
+function getPlayerDetails(ws, objID, overrideObj) {
+	let details = {};
+	if(overrideObj) {
+		details = overrideObj;
+	} else {
+		details = Object.assign({}, servers[ws.identifier].playerDetails[objID]);
+	}
+
+	let sensitive = {
+		"ip": 3
+	};
+
+	for(var sensitiveStat in sensitive) {
+		if(!(sensitiveStat in details)) {
+			continue;
+		}
+
+		let required = sensitive[sensitiveStat];
+		if(!checkPermissionLevel(ws, required)) {
+			details[sensitiveStat] = "[value hidden]";
+		}
+	}
+
+	return details;
+}
+
 wss.on('connection', function connection(ws) {
 	ws.isAlive = true;
 	ws.on('pong', heartbeat);
@@ -161,7 +187,7 @@ wss.on('connection', function connection(ws) {
 						cmd: "playerData",
 						mode: "add",
 						objID: objID,
-						details: servers[ws.identifier].playerDetails[objID],
+						details: getPlayerDetails(ws, objID),
 						time: Date.now()
 					};
 					ws.send(JSON.stringify(out));
@@ -266,6 +292,26 @@ wss.broadcast = function broadcast(identifier, data) {
 		if(client.readyState === WebSocket.OPEN) {
 			if(client.identifier == identifier) {
 				client.send(data, function ack(err) {
+					// do nothing
+				});
+			}
+		}
+	});
+};
+
+wss.broadcastPlayerDetails = function broadcast(identifier, objID, overrideObj) {
+	wss.clients.forEach(function each(client) {
+		if(client.readyState === WebSocket.OPEN) {
+			if(client.identifier == identifier) {
+				let out = {
+					cmd: "playerData",
+					mode: "add",
+					objID: objID,
+					time: Date.now(),
+					details: getPlayerDetails(client, objID, overrideObj)
+				};
+
+				client.send(JSON.stringify(out), function ack(err) {
 					// do nothing
 				});
 			}
@@ -546,7 +592,8 @@ var funcs = {
 			}
 		}
 
-		wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
+		//wss.broadcast(socket.serverIdentifier, JSON.stringify(out));
+		wss.broadcastPlayerDetails(socket.serverIdentifier, objID, out.details);
 	},
 
 	"var": function(socket, parts) {

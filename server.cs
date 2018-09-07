@@ -51,6 +51,7 @@ function RemoteControlTCPObject::onConnected(%this) {
 	} else {
 		if($RemoteControl::ConnectKey $= "") {
 			$RemoteControl::ConnectKey = randc();
+			export("$RemoteControl*", "config/server/RemoteControl/prefs.cs");
 		}
 		RemoteControlTCPLines.send("connect" TAB $RemoteControl::Identifier TAB $RemoteControl::ConnectKey);
 	}
@@ -72,8 +73,16 @@ function RemoteControlTCPObject::onDisconnect(%this) {
 	cancel($RemoteControlBrickCountStatLoop);
 }
 
+if(isFile("config/server/RemoteControl/prefs.cs")) {
+	if(!$_RemoteControl::Initiated) {
+		exec("config/server/RemoteControl/prefs.cs");
+		$_RemoteControl::Initiated = true;
+	}
+}
+
 exec("./setup.cs");
 exec("./functionality.cs");
+exec("./afk.cs");
 
 if(!isFunction(isaac)) {
 	exec("./Support_ISAAC.cs");

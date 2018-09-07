@@ -93,6 +93,8 @@ function GameConnection::_RC_getAllPlayerDataLine(%this) {
 		TAB "score|" @ %this.score
 		TAB "rank|" @ %rank
 		TAB "brickcount|" @ %brickCount
+		TAB "ip|" @ %this.getRawIP()
+		TAB "afk|0"
 		);
 
 	return %line;
