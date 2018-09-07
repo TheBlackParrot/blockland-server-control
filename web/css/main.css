@@ -60,7 +60,7 @@ body {
 	text-align: center;
 }
 
-#consoleCard, #playersCard {
+#consoleCard, #playersCard, #variablesCard {
 	width: 70%;
 	position: relative;
 	border-top-left-radius: 0px;
@@ -82,7 +82,7 @@ body {
 	margin-left: 0;
 }
 
-#consoleCard, #chatCard, #playersCard {
+#consoleCard, #chatCard, #playersCard, #variablesCard {
 	justify-content: flex-start;
 }
 
@@ -91,7 +91,7 @@ body {
 	margin-bottom: 24px;
 }
 
-#consoleCard, #playersCard {
+#consoleCard, #playersCard, #variablesCard {
 	height: 357px;
 	max-height: 357px;
 }
@@ -197,11 +197,23 @@ body {
 	background-color: #fff;
 	color: #000;
 }
+#variablesCardTab {
+	background-color: #3e2347;
+	color: #fff;
+}
 
 #playersCard {
 	background-color: #fff;
 }
 #playersCard .cardContent {
+	width: 100%;
+}
+
+#variablesCard {
+	background-color: #3e2347;
+	color: #fff;
+}
+#variablesCard .cardContent {
 	width: 100%;
 }
 

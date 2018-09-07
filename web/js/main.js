@@ -321,9 +321,11 @@ ws.onmessage = function(event) {
 				}
 
 				$("#loggedInAs").text("Logged in as " + data.username);
+				$("#setCredentialsLoggedInAs").text(data.username);
 			} else {
 				$("#loginPasswordBox").val("");
 				$("#loggedInAs").text("Login failed, please try again.");
+				$("#setCredentialsLoggedInAs").text("Login");
 			}
 			break;
 	}
@@ -398,6 +400,7 @@ $("#chatInput").keypress(function(e) {
 $(".cardTab").on("click", function(event) {
 	$("#consoleCard").hide();
 	$("#playersCard").hide();
+	$("#variablesCard").hide();
 
 	let which = $(this).text();
 	switch(which) {
@@ -410,6 +413,11 @@ $(".cardTab").on("click", function(event) {
 			stopPlayerLoops();
 			startPlayerLoops();
 			$("#playersCard").show();
+			break;
+
+		case "Variables":
+			stopPlayerLoops();
+			$("#variablesCard").show();
 			break;
 	}
 });

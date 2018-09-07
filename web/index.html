@@ -34,15 +34,6 @@
 				<span class="closeDialogButton"><i class="fas fa-times-circle"></i></span>
 			</div>
 
-<!--
-	%line = trim(%this
-		TAB "blid|" @ %this.bl_id
-		TAB "name|" @ strReplace(%this.getPlayerName(), "|", "/")
-		TAB "score|" @ %this.score
-		TAB "rank|" @ %rank
-		TAB "brickcount|" @ %brickCount
-		);
--->
 			<div class="dialogContent">
 				<table id="playerStatTable">
 					<tr>
@@ -94,7 +85,7 @@
 			<div class="button" id="startStopButton"><i class="fas fa-power-off"></i> Shutdown</div>
 		</div>
 		<div id="miscButtons">
-			<div class="button" style="display: none;" id="setCredentialsButton"><i class="fas fa-user"></i> Set Credentials</div>
+			<div class="button" style="display: none;" id="setCredentialsButton"><i class="fas fa-user"></i> <span id="setCredentialsLoggedInAs">Login</span></div>
 		</div>
 	</div>
 	<div id="selectorMenu">
@@ -121,6 +112,7 @@
 				<div class="cardTabs">
 					<span class="cardTab" id="consoleCardTab">Console</span>
 					<span class="cardTab tabInactive" id="playersCardTab">Players</span>
+					<span class="cardTab tabInactive" id="variablesCardTab">Variables</span>
 				</div>
 				<div class="cardContent">
 					hey worlds<br/>
@@ -134,6 +126,7 @@
 				<div class="cardTabs">
 					<span class="cardTab tabInactive" id="consoleCardTab">Console</span>
 					<span class="cardTab" id="playersCardTab">Players</span>
+					<span class="cardTab tabInactive" id="variablesCardTab">Variables</span>
 				</div>
 				<div class="cardContent">
 					<table id="playerList">
@@ -145,6 +138,15 @@
 							<td>Ping</td>
 						</tr>
 					</table>
+				</div>
+			</div>
+			<div class="card" id="variablesCard" style="display: none;">
+				<div class="cardTabs">
+					<span class="cardTab tabInactive" id="consoleCardTab">Console</span>
+					<span class="cardTab tabInactive" id="playersCardTab">Players</span>
+					<span class="cardTab" id="variablesCardTab">Variables</span>
+				</div>
+				<div class="cardContent">
 				</div>
 			</div>
 			<div class="card" id="chatCard">
