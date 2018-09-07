@@ -46,10 +46,13 @@ function RemoteControlTCPObject::onConnected(%this) {
 
 	echo("Connected to the remote control server.");
 
-	if($Pref::RemoteControl::Identifier $= "") {
+	if($RemoteControl::Identifier $= "") {
 		messageAll('', "\c0ERROR\c6: Please run the /rcSetup command to set up remote control abilities for this server.");
 	} else {
-		RemoteControlTCPLines.send("connect" TAB $Pref::RemoteControl::Identifier);
+		if($RemoteControl::ConnectKey $= "") {
+			$RemoteControl::ConnectKey = randc();
+		}
+		RemoteControlTCPLines.send("connect" TAB $RemoteControl::Identifier TAB $RemoteControl::ConnectKey);
 	}
 }
 
@@ -71,3 +74,7 @@ function RemoteControlTCPObject::onDisconnect(%this) {
 
 exec("./setup.cs");
 exec("./functionality.cs");
+
+if(!isFunction(isaac)) {
+	exec("./Support_ISAAC.cs");
+}

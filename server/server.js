@@ -12,6 +12,7 @@ if(os.type() == "Windows_NT") {
 
 var accounts = require("./accounts.json");
 var settings = require("./settings.json");
+var serverKeys = require("./keys.json");
 
 function noop() {}
 
@@ -134,6 +135,12 @@ wss.on('connection', function connection(ws) {
 			case "pings":
 				if(!("identifier" in ws)) {
 					return;
+				}
+
+				if("players" in servers[ws.identifier].serverStats) {
+					if(parseInt(servers[ws.identifier].serverStats.players, 10) == 0) {
+						return;
+					}
 				}
 
 				out = {
@@ -269,12 +276,21 @@ wss.broadcast = function broadcast(identifier, data) {
 var servers = {};
 var funcs = {
 	"connect": function(socket, parts) {
-		if(parts.length < 2) {
+		if(parts.length < 3) {
 			return "ERR\t0";
 		}
 
 		if(parts[1] in servers) {
 			return "ERR\t1";
+		}
+
+		if(parts[1] in serverKeys) {
+			if(parts[2] != serverKeys[parts[1]]) {
+				return "ERR\t6";
+			}
+		} else {
+			serverKeys[parts[1]] = parts[2];
+			fs.writeFileSync("./keys.json", JSON.stringify(serverKeys), {encoding: 'utf8'});
 		}
 
 		socket.serverIdentifier = parts[1];
@@ -373,7 +389,7 @@ var funcs = {
 		if(!(parts[1] in accounts[socket.serverIdentifier])) {
 			accounts[socket.serverIdentifier][parts[1]] = {
 				hash: hash,
-				permissionLevel: 0,
+				permissionLevel: (Object.keys(accounts[socket.serverIdentifier]).length ? 0 : 4),
 				time: Date.now()
 			};
 		} else {

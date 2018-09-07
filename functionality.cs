@@ -31,6 +31,8 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 					echo("\c0User already exists for this server.");
 				case 5:
 					echo("\c0Malformed argument.");
+				case 6:
+					echo("\c0Invalid server key.");
 			}
 
 		case "HELLO":
