@@ -4,15 +4,91 @@ const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 
-var disableConsole = false;
-if(os.type() == "Windows_NT") {
-	// can't open console.log while the game is running in Windows; should be fine in Linux and Mac
-	disableConsole = true;
-}
-
 var accounts = require("./accounts.json");
 var settings = require("./settings.json");
 var serverKeys = require("./keys.json");
+var managedServers = require("./servers.json");
+
+if(settings.enablePM2) {
+	const pm2 = require("pm2");
+	
+	pm2.connect(function(err) {
+		if(err) {
+			console.error(err);
+			console.log("Error with connecting to a PM2 instance, not automatically starting any servers.");
+			return;
+		}
+
+		pm2.list(function(err, processList) {
+			let names = [];
+
+			for(let idx in processList) {
+				names.push(processList[idx].name);
+			}
+			console.log(names);
+
+			let idents = Object.keys(managedServers).filter(function(x) {
+				return names.indexOf(`Blockland_${x}`) == -1;
+			});
+			console.log(idents);
+
+			for(let idx in idents) {
+				let ident = idents[idx];
+				let serverData = managedServers[ident];
+
+				if(!serverData.autoStart) {
+					continue;
+				}
+
+				let blExe = serverData.path + "/Blockland.exe";
+				let mainCS = serverData.path + "/config/main.cs";
+				let RCCS = serverData.path + "/config/RCInit.cs";
+				let prefsCS = serverData.path + "/config/server/prefs.cs";
+
+				if(!fs.existsSync(blExe)) {
+					console.log(`No Blockland executable found, not starting server ${ident}.`);
+					continue;
+				}
+
+				if(!fs.existsSync(mainCS)) {
+					fs.writeFileSync(mainCS, 'exec("config/RCInit.cs");');
+				} else {
+					let mainCSData = fs.readFileSync(mainCS, {encoding: "utf8"});
+					if(mainCSData.indexOf('exec("config/RCInit.cs");') == -1) {
+						fs.writeFileSync(mainCS, '\r\nexec("config/RCInit.cs");', {flag: 'a'});
+					}
+				}
+
+				let rccsLines = [
+					'// DO NOT MODIFY THIS FILE, YOUR CHANGES WILL NOT PERSIST.',
+					`$RemoteControl::Identifier = "${ident}";`
+				];
+
+				fs.writeFileSync(RCCS, rccsLines.join("\r\n"));
+
+				// sorry, i have to
+				let prefsData = fs.readFileSync(prefsCS, {encoding: "utf8"}).split("\n").map(function(line) {
+					let parts = line.trim().split(" ");
+					if(parts[0] == "$Pref::Server::Port") {
+						return `$Pref::Server::Port = ${serverData.port};`;
+					} else {
+						return line;
+					}
+				});
+
+				fs.writeFileSync(prefsCS, prefsData.join("\r\n"));
+
+				pm2.start({
+					name: `Blockland_${ident}`,
+					cwd: serverData.path,
+					script: blExe,
+					args: ["ptlaaxobimwroe", (serverData.LAN ? "-dedicatedLAN" : "-dedicated")].join(" "),
+					autorestart: serverData.autoStart
+				})
+			}
+		});
+	});
+}
 
 function noop() {}
 

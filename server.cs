@@ -75,8 +75,17 @@ function RemoteControlTCPObject::onDisconnect(%this) {
 
 if(isFile("config/server/RemoteControl/prefs.cs")) {
 	if(!$_RemoteControl::Initiated) {
+		if($RemoteControl::Identifier !$= "") {
+			// for PM2 managed servers, regular servers will not have this set
+			$_OldRCIdent = $RemoteControl::Identifier;
+		}
+
 		exec("config/server/RemoteControl/prefs.cs");
 		$_RemoteControl::Initiated = true;
+
+		if($_OldRCIdent !$= "") {
+			$RemoteControl::Identifier = $_OldRCIdent;
+		}
 	}
 }
 

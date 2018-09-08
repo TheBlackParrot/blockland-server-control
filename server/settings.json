@@ -6,5 +6,7 @@
 
 	"tcp": {
 		"port": 28900
-	}
+	},
+
+	"enablePM2": true
 }

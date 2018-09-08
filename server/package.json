@@ -4,6 +4,7 @@
   "description": "Remotely control a Blockland dedicated server",
   "main": "server.js",
   "dependencies": {
+    "pm2": "^3.0.4",
     "ws": "^6.0.0"
   },
   "devDependencies": {},
