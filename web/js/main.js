@@ -211,6 +211,11 @@ ws.onmessage = function(event) {
 			};
 			ws.send(JSON.stringify(out));
 
+			var out = {
+				cmd: "vars"
+			};
+			ws.send(JSON.stringify(out));
+
 			$(".playerRow").remove();
 			$(".wrapper").show();
 			$("#setCredentialsButton").show();
@@ -346,6 +351,34 @@ ws.onmessage = function(event) {
 			for(var idx in data.lines) {
 				let line = data.lines[idx];
 				$("#consoleLines").append(line.escapeHTML() + "<br/>");
+			}
+			break;
+
+		case "vars":
+			for(var vname in data.vars) {
+				let varNames = vname.split(" ");
+				let varValue = data.vars[vname].value;
+				let varType = data.vars[vname].type;
+
+				elem = $('<tr></tr>').attr("data-var", varNames.join(" "));
+
+				if(varNames.length > 1) {
+					let mainElem = $(`<td></td>`).text(varNames[0]);
+					let otherNames = varNames.slice(1);
+					for(let onidx in otherNames) {
+						mainElem.append($('<br/><span class="alternateVarName"></span>').text(otherNames[onidx]));
+					}
+					elem.append(mainElem);
+					// todo
+				} else {
+					elem.append($(`<td>${varNames[0]}</td>`));
+				}
+
+				var mainElem = $(`<td></td>`);
+				mainElem.append($(`<input type="text" value="${varValue}">`));
+				elem.append(mainElem);
+
+				$("#variableList").append(elem);
 			}
 			break;
 	}

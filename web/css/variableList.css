@@ -1,0 +1,64 @@
+#variableList {
+	width: 100%;
+	line-height: 12pt;
+	color: #fff;
+	margin-bottom: 0px;
+}
+#variablesCard .cardContent {
+	margin-bottom: 32px;
+}
+#variableList tr td {
+	font-size: 10pt;
+	padding: 2px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+#variableList tr:last-child td {
+	border-bottom: none;
+}
+#variableList tr td:nth-child(1) {
+	text-align: right;
+	font-weight: 700;
+	opacity: 0.5;
+	padding-right: 8px;
+}
+#variableList tr td:nth-child(2) {
+	width: 100%;
+}
+.alternateVarName {
+	font-weight: 300;
+	opacity: 0.33;
+}
+
+#variableList input {
+	background: transparent;
+	outline: none;
+	border: none;
+	color: #fff;
+	font-size: 10pt;
+	width: 100%;
+	padding: 4px;
+}
+
+#variableList input:active, #variableList input:focus {
+	background: #000;
+}
+
+#variablesCardButtons {
+	position: absolute;
+	bottom: 14px;
+	right: 24px;
+}
+
+#variablesCardButtons .button {
+	margin-left: 4px;
+}
+
+#saveVarsButton {
+	background-color: #3ca370;
+	color: #fff;
+}
+
+#resetVarsButton {
+	background-color: #eb564b;
+	color: #fff;
+}

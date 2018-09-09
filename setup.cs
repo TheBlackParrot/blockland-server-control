@@ -92,14 +92,14 @@ function serverCmdRCSetDefaultEditVars(%client) {
 	$RemoteControl::ModVarType5 = "password";
 	$RemoteControl::ModVarType6 = "text";
 	$RemoteControl::ModVarType7 = "text";
-	$RemoteControl::ModVarType8 = "text";
+	$RemoteControl::ModVarType8 = "bool";
 	$RemoteControl::ModVarType9 = "text";
-	$RemoteControl::ModVarType10 = "text";
-	$RemoteControl::ModVarType11 = "text";
-	$RemoteControl::ModVarType12 = "text";
-	$RemoteControl::ModVarType13 = "text";
-	$RemoteControl::ModVarType14 = "text";
-	$RemoteControl::ModVarType15 = "text";
+	$RemoteControl::ModVarType10 = "bool";
+	$RemoteControl::ModVarType11 = "int";
+	$RemoteControl::ModVarType12 = "int";
+	$RemoteControl::ModVarType13 = "int";
+	$RemoteControl::ModVarType14 = "int";
+	$RemoteControl::ModVarType15 = "int";
 
 	$RemoteControl::ModVarViewPermissionLimit0 = 0;
 	$RemoteControl::ModVarViewPermissionLimit1 = 0;

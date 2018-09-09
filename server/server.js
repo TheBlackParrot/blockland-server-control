@@ -217,7 +217,8 @@ wss.on('connection', function connection(ws) {
 						out = {
 							cmd: "acceptIdent",
 							ident: ws.identifier,
-							time: Date.now()
+							time: Date.now(),
+							managed: ws.identifier in managedServers
 						};
 						ws.send(JSON.stringify(out));
 
@@ -402,6 +403,24 @@ wss.on('connection', function connection(ws) {
 				}
 
 				ws.send(JSON.stringify(out));
+				break;
+
+			case "resourceStat":
+				if(!("identifier" in ws)) {
+					return;
+				}
+
+				if(!(ws.identifier in managedServers)) {
+					return;
+				}
+
+				pm2.describe("Blockland_" + ws.identifier, function(err, processDesc) {
+					if(err) {
+						return;
+					}
+
+					ws.send(JSON.stringify({cmd: "resourceStat", stat: processDesc[0].monit}));
+				});
 				break;
 		}
 	});
