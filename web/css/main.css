@@ -89,6 +89,13 @@ body {
 .cardContent {
 	overflow-y: auto;
 	margin-bottom: 24px;
+	width: 100%;
+}
+
+#consoleCard .cardContent {
+	/* bless */
+	display: flex;
+	flex-direction: column-reverse;
 }
 
 #consoleCard, #playersCard, #variablesCard {

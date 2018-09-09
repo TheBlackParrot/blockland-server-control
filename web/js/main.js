@@ -1,5 +1,16 @@
 var ws = new WebSocket("ws://10.161.8.254:28999");
 
+String.prototype.escapeHTML = function() {
+	var tagsToReplace = {
+		'&': '&amp;',
+		'<': '&lt;',
+		'>': '&gt;'
+	};
+	return this.replace(/[&<>]/g, function(tag) {
+		return tagsToReplace[tag] || tag;
+	});
+};
+
 function sendNotification(type, msg, sticky = false) {
 	let elem = $('<div class="notification"></div>').addClass(type + "Notification");
 
@@ -203,6 +214,8 @@ ws.onmessage = function(event) {
 			$(".playerRow").remove();
 			$(".wrapper").show();
 			$("#setCredentialsButton").show();
+
+			$("#consoleLines").empty();
 			break;
 
 		case "stat":
@@ -326,6 +339,13 @@ ws.onmessage = function(event) {
 				$("#loginPasswordBox").val("");
 				$("#loggedInAs").text("Login failed, please try again.");
 				$("#setCredentialsLoggedInAs").text("Login");
+			}
+			break;
+
+		case "console":
+			for(var idx in data.lines) {
+				let line = data.lines[idx];
+				$("#consoleLines").append(line.escapeHTML() + "<br/>");
 			}
 			break;
 	}

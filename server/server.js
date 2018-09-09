@@ -9,9 +9,10 @@ var settings = require("./settings.json");
 var serverKeys = require("./keys.json");
 var managedServers = require("./servers.json");
 
+var pm2;
 if(settings.enablePM2) {
-	const pm2 = require("pm2");
-	
+	pm2 = require("pm2");
+
 	pm2.connect(function(err) {
 		if(err) {
 			console.error(err);
@@ -61,7 +62,8 @@ if(settings.enablePM2) {
 
 				let rccsLines = [
 					'// DO NOT MODIFY THIS FILE, YOUR CHANGES WILL NOT PERSIST.',
-					`$RemoteControl::Identifier = "${ident}";`
+					`$RemoteControl::Identifier = "${ident}";`,
+					'schedule(1000, 0, exec, "Add-Ons/Server_RemoteControlSupport/server.cs");'
 				];
 
 				fs.writeFileSync(RCCS, rccsLines.join("\r\n"));
@@ -83,10 +85,51 @@ if(settings.enablePM2) {
 					cwd: serverData.path,
 					script: blExe,
 					args: ["ptlaaxobimwroe", (serverData.LAN ? "-dedicatedLAN" : "-dedicated")].join(" "),
-					autorestart: serverData.autoStart
+					autorestart: serverData.autoStart,
+					out_file: serverData.path + "/console.pm2.out"
 				})
 			}
 		});
+
+		for(let ident in managedServers) {
+			let serverData = managedServers[ident];
+			let fn = serverData.path + "/console.pm2.out";
+
+			managedServers[ident].consoleData = [];
+			managedServers[ident].consoleReading = false;
+
+			if(fs.existsSync(fn)) {
+				setInterval(function() {
+					if(managedServers[ident].consoleReading) {
+						return;
+					}
+
+					managedServers[ident].consoleReading = true;
+
+					fs.readFile(fn, {encoding: "utf8"}, function(err, data) {
+						let lines = data.split("\n").map(function(line) {
+							return line.trim();
+						}).filter(function(line) {
+							return line != "%" || line == "";
+						});
+
+						if(lines.length) {
+							if(lines.length > 1) {
+								for(let x = 1; x < lines.length; x++) {
+									lines[x] = lines[x].substr(2);
+								}
+							}
+							managedServers[ident].consoleData = managedServers[ident].consoleData.concat(lines).slice(-100);
+							wss.broadcastConsoleLines(ident, lines);
+						}
+
+						fs.writeFile(fn, "", {encoding: "utf8"}, function(err) {
+							managedServers[ident].consoleReading = false;
+						});
+					});
+				}, 2000);
+			}
+		}
 	});
 }
 
@@ -291,6 +334,11 @@ wss.on('connection', function connection(ws) {
 					return;
 				}
 
+				if(!(ws.identifier in accounts)) {
+					ws.send(JSON.stringify(out));
+					return;					
+				}
+
 				if(!("username" in data) || !("hash" in data)) {
 					ws.send(JSON.stringify(out));
 					return;
@@ -312,6 +360,12 @@ wss.on('connection', function connection(ws) {
 				ws.loggedInAs = data.username;
 
 				ws.send(JSON.stringify(out));
+
+				if(ws.identifier in managedServers) {
+					if("consoleData" in managedServers[ws.identifier]) {
+						wss.broadcastConsoleLines(ws.identifier, managedServers[ws.identifier].consoleData);
+					}
+				}
 				break;
 
 			case "vars":
@@ -390,6 +444,32 @@ wss.broadcastPlayerDetails = function broadcast(identifier, objID, overrideObj) 
 				client.send(JSON.stringify(out), function ack(err) {
 					// do nothing
 				});
+			}
+		}
+	});
+};
+
+wss.broadcastConsoleLines = function broadcast(identifier, lines = []) {
+	wss.clients.forEach(function each(client) {
+		if(client.readyState === WebSocket.OPEN) {
+			if(client.identifier == identifier) {
+				if(checkPermissionLevel(client, 4)) {
+					let out = {
+						cmd: "console",
+						time: Date.now(),
+						lines: lines.filter(function(line) {
+							return line.length > 0;
+						})
+					};
+
+					if(!out.lines.length) {
+						return;
+					}
+
+					client.send(JSON.stringify(out), function ack(err) {
+						// do nothing
+					});
+				}
 			}
 		}
 	});
