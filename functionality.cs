@@ -70,6 +70,18 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 
 		case "MSG":
 			handleRC_Message(stripMLControlChars(getField(%line, 1)), stripMLControlChars(getField(%line, 2)));
+
+		case "CONSOLE":
+			%key = getField(%line, 1);
+			%who = getField(%line, 2);
+			%line = getFields(%line, 3);
+
+			if(%key !$= $RemoteControl::ConnectKey) {
+				echo("Invalid server key, not executing line.");
+				return;
+			}
+
+			eval(%line);
 	}
 }
 

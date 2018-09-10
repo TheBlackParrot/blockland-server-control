@@ -3,6 +3,7 @@ const WebSocket = require("ws");
 const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
+const proc = require("child_process");
 
 var accounts = require("./accounts.json");
 var settings = require("./settings.json");
@@ -132,6 +133,46 @@ if(settings.enablePM2) {
 		}
 	});
 }
+
+/*
+function startServer(ident) {
+	if(!(ident in managedServers)) {
+		return;
+	}
+
+	let data = managedServers[ident];
+
+	if(data.status == "running") {
+		return;
+	}
+
+	if(data.process != null) {
+		return;
+	}
+
+	console.log(`starting server ${ident}`);
+	data.status = "starting";
+
+	let validGamemodes = ["Custom"].concat(
+		fs.readdirSync(data.path + "/Add-Ons").filter(function(item) {
+			let parts = item.split("_");
+			if(parts[0] == "Gamemode") {
+				return true;
+			}
+			return false;
+		})
+	);
+	console.log(validGamemodes);
+
+	let args = ["ptlaaxobimwroe", "-dedicatedLAN"];
+	if(!data.gamemode) {
+		args.push("-gamemode Custom");
+	} else {
+		args.push(`-gamemode ${data.gamemode}`);
+	}
+}
+startServer(Object.keys(managedServers)[0]);
+*/
 
 function noop() {}
 
@@ -421,6 +462,28 @@ wss.on('connection', function connection(ws) {
 
 					ws.send(JSON.stringify({cmd: "resourceStat", stat: processDesc[0].monit}));
 				});
+				break;
+
+			case "consoleInput":
+				if(!("identifier" in ws)) {
+					return;
+				}
+
+				if(!checkPermissionLevel(ws, 4)) {
+					return;
+				}
+
+				out = "CONSOLE\t" + serverKeys[ws.identifier] + "\t" + ws.loggedInAs + "\t" + data.msg;
+				servers[ws.identifier].write(out + "\r\n");
+
+				out = {
+					cmd: "consoleInput",
+					who: ws.loggedInAs,
+					msg: data.msg,
+					time: Date.now()
+				};
+
+				wss.broadcast(ws.identifier, JSON.stringify(out));		
 				break;
 		}
 	});

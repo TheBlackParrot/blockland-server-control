@@ -381,6 +381,12 @@ ws.onmessage = function(event) {
 				$("#variableList").append(elem);
 			}
 			break;
+
+		case "consoleInput":
+			elem = $('<span class="consoleRemoteInputLine"></span>').text(data.who + ": " + data.msg);
+			$("#consoleLines").append(elem);
+			$("#consoleLines").append("<br/>");
+			break;
 	}
 }
 /*
@@ -448,7 +454,23 @@ $("#chatInput").keypress(function(e) {
 
 		$(this).val("");
 	}
-})
+});
+
+$("#consoleInput").keypress(function(e) {
+	if(e.which == 13) {
+		let val = $(this).val();
+		if(!val) { return false; }
+
+		var out = {
+			cmd: "consoleInput",
+			msg: val
+		};
+
+		ws.send(JSON.stringify(out));
+
+		$(this).val("");
+	}
+});
 
 $(".cardTab").on("click", function(event) {
 	$("#consoleCard").hide();

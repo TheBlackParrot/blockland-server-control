@@ -36,7 +36,6 @@ body {
 	border-radius: 12px;
 	background-color: #fff;
 	box-shadow: 2px 2px 4px rgba(0, 0, 0, .15);
-	justify-content: space-evenly;
 }
 
 #generalStatusCard {
@@ -61,10 +60,11 @@ body {
 }
 
 #consoleCard, #playersCard, #variablesCard {
-	width: 70%;
+	width: calc(100% - 350px - 96px);
 	position: relative;
 	border-top-left-radius: 0px;
 	border-top-right-radius: 0px;
+	margin-left: 0;
 }
 
 #consoleCard {
@@ -75,11 +75,10 @@ body {
 }
 
 #chatCard {
-	width: 30%;
+	width: 350px;
 	background-color: #7e7e8f;
 	line-height: 20pt;
 	position: relative;
-	margin-left: 0;
 }
 
 #consoleCard, #chatCard, #playersCard, #variablesCard {
@@ -92,7 +91,7 @@ body {
 	width: 100%;
 }
 
-#consoleCard .cardContent {
+#consoleCard .cardContent, #chatCard .cardContent {
 	/* bless */
 	display: flex;
 	flex-direction: column-reverse;
@@ -136,7 +135,7 @@ body {
 .chatRow {
 	position: relative;
 	width: 100%;
-	overflow-wrap: break-word;
+	word-break: break-word;
 }
 
 #consoleInput, #chatInput {
@@ -158,6 +157,10 @@ body {
 	background-color: #272736;
 	color: #c2c2d1;
 	font-family: monospace;
+}
+
+.consoleRemoteInputLine {
+	color: turquoise;
 }
 
 #chatInput {
@@ -229,4 +232,8 @@ body {
 	line-height: 10px;
 	position: relative;
 	top: 10px;
+}
+
+#consoleLines {
+	word-break: break-word;
 }
