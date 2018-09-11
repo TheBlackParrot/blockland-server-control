@@ -184,7 +184,11 @@ function heartbeat() {
 	this.isAlive = true;
 }
 
-function checkPermissionLevel(ws, required) {
+function checkPermissionLevel(ws, required, allowPublic = false) {
+	if(required == 0 && allowPublic) {
+		return true;
+	}
+
 	if(!ws.loggedInAs) {
 		return false;
 	}
@@ -235,6 +239,261 @@ function getPlayerDetails(ws, objID, overrideObj) {
 	return details;
 }
 
+var wsFuncs = {
+	setIdent: function(ws, data) {
+		if(!(data.ident in servers)) {
+			return;
+		}
+
+		ws.loggedInAs = undefined;
+
+		ws.identifier = data.ident;
+
+		if("serverStats" in servers[ws.identifier]) {
+			let out = {
+				cmd: "acceptIdent",
+				ident: ws.identifier,
+				time: Date.now(),
+				managed: ws.identifier in managedServers
+			};
+			ws.send(JSON.stringify(out));
+
+			out = {
+				cmd: "stat",
+				stats: servers[ws.identifier].serverStats,
+				time: Date.now()
+			};
+			ws.send(JSON.stringify(out));
+		}
+	},
+
+	uptime: function(ws) {
+		if(!("identifier" in ws)) {
+			return;
+		}
+
+		let out = {
+			cmd: "uptime",
+			value: Date.now() - servers[ws.identifier].serverStartedAt,
+			time: Date.now()
+		};
+		ws.send(JSON.stringify(out));
+	},
+
+	chat: function(ws, data) {
+		if(!("identifier" in ws)) {
+			return;
+		}
+
+		if(!checkPermissionLevel(ws, 2)) {
+			return;
+		}
+
+		let out = "MSG\t" + ws.loggedInAs + "\t" + data.msg;
+		servers[ws.identifier].write(out + "\r\n");
+
+		out = {
+			cmd: "chat",
+			who: ws.loggedInAs,
+			msg: data.msg,
+			remote: true,
+			system: false,
+			time: Date.now()
+		};
+
+		wss.broadcast(ws.identifier, JSON.stringify(out));
+	},
+
+	servers: function(ws) {
+		let out = {
+			cmd: "servers",
+			servers: gatherServers(),
+			time: Date.now()
+		};
+		ws.send(JSON.stringify(out));
+	},
+
+	pings: function(ws) {
+		if(!("identifier" in ws)) {
+			return;
+		}
+
+		if("players" in servers[ws.identifier].serverStats) {
+			if(parseInt(servers[ws.identifier].serverStats.players, 10) == 0) {
+				return;
+			}
+		}
+
+		let out = {
+			cmd: "pings",
+			pings: servers[ws.identifier].playerPings,
+			time: Date.now()
+		};
+		ws.send(JSON.stringify(out));
+	},
+
+	players: function(ws) {
+		if(!("identifier" in ws)) {
+			return;
+		}
+
+		for(objID in servers[ws.identifier].playerDetails) {
+			let out = {
+				cmd: "playerData",
+				mode: "add",
+				objID: objID,
+				details: getPlayerDetails(ws, objID),
+				time: Date.now()
+			};
+			ws.send(JSON.stringify(out));
+		}
+	},
+
+	login: function(ws, data) {
+		let out = {
+			cmd: "loginAttempt",
+			success: false,
+			time: Date.now()
+		};
+
+		if("lastLoginAttempt" in ws) {
+			if(Date.now() - ws.lastLoginAttempt < 1500) {
+				ws.send(JSON.stringify(out));
+				return;
+			}
+		}
+
+		ws.lastLoginAttempt = Date.now();
+
+		if(!("identifier" in ws)) {
+			ws.send(JSON.stringify(out));
+			return;
+		}
+
+		if(!(ws.identifier in accounts)) {
+			ws.send(JSON.stringify(out));
+			return;					
+		}
+
+		if(!("username" in data) || !("hash" in data)) {
+			ws.send(JSON.stringify(out));
+			return;
+		}
+
+		if(!(data.username in accounts[ws.identifier])) {
+			ws.send(JSON.stringify(out));
+			return;
+		}
+
+		if(data.hash != accounts[ws.identifier][data.username].hash) {
+			ws.send(JSON.stringify(out));
+			return;
+		}
+
+		out.success = true;
+		out.username = data.username;
+
+		ws.loggedInAs = data.username;
+
+		ws.send(JSON.stringify(out));
+
+		if(ws.identifier in managedServers) {
+			if("consoleData" in managedServers[ws.identifier]) {
+				wss.broadcastConsoleLines(ws.identifier, managedServers[ws.identifier].consoleData);
+			}
+		}
+	},
+
+	vars: function(ws) {
+		let out = {
+			cmd: "vars",
+			vars: {},
+			time: Date.now()
+		};
+
+		if(!("identifier" in ws)) {
+			return;
+		}
+
+		if(!("serverVars" in servers[ws.identifier])) {
+			return;
+		}
+
+		for(let variable in servers[ws.identifier].serverVars) {
+			let varData = servers[ws.identifier].serverVars[variable];
+			let toAdd = {
+				value: "[value hidden]",
+				unavailable: true,
+				type: varData.type,
+				mutant: false
+			};
+
+			if(checkPermissionLevel(ws, varData.permissionLevel.view, true)) {
+				toAdd.value = varData.value;
+				toAdd.unavailable = false;
+				if(checkPermissionLevel(ws, varData.permissionLevel.edit)) {
+					toAdd.mutant = true;
+				}
+				toAdd.type = varData.type;
+			}
+
+			out.vars[variable] = toAdd;
+		}
+
+		ws.send(JSON.stringify(out));
+	},
+
+	modVars: function(ws, data) {
+		if(!("identifier" in ws)) {
+			return;
+		}
+
+		if(!("serverVars" in servers[ws.identifier])) {
+			return;
+		}
+	},
+
+	resourceStat: function(ws) {
+		if(!("identifier" in ws)) {
+			return;
+		}
+
+		if(!(ws.identifier in managedServers)) {
+			return;
+		}
+
+		pm2.describe("Blockland_" + ws.identifier, function(err, processDesc) {
+			if(err) {
+				return;
+			}
+
+			ws.send(JSON.stringify({cmd: "resourceStat", stat: processDesc[0].monit}));
+		});
+	},
+
+	consoleInput: function(ws, data) {
+		if(!("identifier" in ws)) {
+			return;
+		}
+
+		if(!checkPermissionLevel(ws, 4)) {
+			return;
+		}
+
+		let out = "CONSOLE\t" + serverKeys[ws.identifier] + "\t" + ws.loggedInAs + "\t" + data.msg;
+		servers[ws.identifier].write(out + "\r\n");
+
+		out = {
+			cmd: "consoleInput",
+			who: ws.loggedInAs,
+			msg: data.msg,
+			time: Date.now()
+		};
+
+		wss.broadcast(ws.identifier, JSON.stringify(out));	
+	}
+};
+
 wss.on('connection', function connection(ws) {
 	ws.isAlive = true;
 	ws.on('pong', heartbeat);
@@ -245,249 +504,15 @@ wss.on('connection', function connection(ws) {
 
 	ws.on('message', function(raw) {
 		let data = JSON.parse(raw);
-		let out = {};
 
-		switch(data.cmd) {
-			case "setIdent":
-				if(data.ident in servers) {
-					ws.loggedInAs = undefined;
-
-					ws.identifier = data.ident;
-
-					if("serverStats" in servers[ws.identifier]) {
-						out = {
-							cmd: "acceptIdent",
-							ident: ws.identifier,
-							time: Date.now(),
-							managed: ws.identifier in managedServers
-						};
-						ws.send(JSON.stringify(out));
-
-						out = {
-							cmd: "stat",
-							stats: servers[ws.identifier].serverStats,
-							time: Date.now()
-						};
-						ws.send(JSON.stringify(out));
-					}
-				}
-				break;
-
-			case "uptime":
-				if(!("identifier" in ws)) {
-					return;
-				}
-
-				out = {
-					cmd: "uptime",
-					value: Date.now() - servers[ws.identifier].serverStartedAt,
-					time: Date.now()
-				};
-				ws.send(JSON.stringify(out));
-				break;
-
-			case "chat":
-				if(!("identifier" in ws)) {
-					return;
-				}
-
-				if(!checkPermissionLevel(ws, 2)) {
-					return;
-				}
-
-				out = "MSG\t" + ws.loggedInAs + "\t" + data.msg;
-				servers[ws.identifier].write(out + "\r\n");
-
-				out = {
-					cmd: "chat",
-					who: ws.loggedInAs,
-					msg: data.msg,
-					remote: true,
-					system: false,
-					time: Date.now()
-				};
-
-				wss.broadcast(ws.identifier, JSON.stringify(out));
-				break;
-
-			case "servers":
-				out = {
-					cmd: "servers",
-					servers: gatherServers(),
-					time: Date.now()
-				};
-				ws.send(JSON.stringify(out));
-				break;
-
-			case "pings":
-				if(!("identifier" in ws)) {
-					return;
-				}
-
-				if("players" in servers[ws.identifier].serverStats) {
-					if(parseInt(servers[ws.identifier].serverStats.players, 10) == 0) {
-						return;
-					}
-				}
-
-				out = {
-					cmd: "pings",
-					pings: servers[ws.identifier].playerPings,
-					time: Date.now()
-				};
-				ws.send(JSON.stringify(out));
-				break;
-
-			case "players":
-				if(!("identifier" in ws)) {
-					return;
-				}
-
-				for(objID in servers[ws.identifier].playerDetails) {
-					out = {
-						cmd: "playerData",
-						mode: "add",
-						objID: objID,
-						details: getPlayerDetails(ws, objID),
-						time: Date.now()
-					};
-					ws.send(JSON.stringify(out));
-				}
-				break;
-
-			case "login":
-				out = {
-					cmd: "loginAttempt",
-					success: false,
-					time: Date.now()
-				};
-
-				if("lastLoginAttempt" in ws) {
-					if(Date.now() - ws.lastLoginAttempt < 1500) {
-						ws.send(JSON.stringify(out));
-						return;
-					}
-				}
-
-				ws.lastLoginAttempt = Date.now();
-
-				if(!("identifier" in ws)) {
-					ws.send(JSON.stringify(out));
-					return;
-				}
-
-				if(!(ws.identifier in accounts)) {
-					ws.send(JSON.stringify(out));
-					return;					
-				}
-
-				if(!("username" in data) || !("hash" in data)) {
-					ws.send(JSON.stringify(out));
-					return;
-				}
-
-				if(!(data.username in accounts[ws.identifier])) {
-					ws.send(JSON.stringify(out));
-					return;
-				}
-
-				if(data.hash != accounts[ws.identifier][data.username].hash) {
-					ws.send(JSON.stringify(out));
-					return;
-				}
-
-				out.success = true;
-				out.username = data.username;
-
-				ws.loggedInAs = data.username;
-
-				ws.send(JSON.stringify(out));
-
-				if(ws.identifier in managedServers) {
-					if("consoleData" in managedServers[ws.identifier]) {
-						wss.broadcastConsoleLines(ws.identifier, managedServers[ws.identifier].consoleData);
-					}
-				}
-				break;
-
-			case "vars":
-				out = {
-					cmd: "vars",
-					vars: {},
-					time: Date.now()
-				};
-
-				if(!("identifier" in ws)) {
-					return;
-				}
-
-				if(!("serverVars" in servers[ws.identifier])) {
-					return;
-				}
-
-				for(let variable in servers[ws.identifier].serverVars) {
-					let varData = servers[ws.identifier].serverVars[variable];
-					let toAdd = {
-						unavailable: true
-					};
-
-					if(checkPermissionLevel(ws, varData.permissionLevel.view)) {
-						toAdd.value = varData.value;
-						toAdd.unavailable = false;
-					} else {
-						toAdd.value = "[value hidden]";
-					}
-
-					toAdd.type = varData.type;
-
-					out.vars[variable] = toAdd;
-				}
-
-				ws.send(JSON.stringify(out));
-				break;
-
-			case "resourceStat":
-				if(!("identifier" in ws)) {
-					return;
-				}
-
-				if(!(ws.identifier in managedServers)) {
-					return;
-				}
-
-				pm2.describe("Blockland_" + ws.identifier, function(err, processDesc) {
-					if(err) {
-						return;
-					}
-
-					ws.send(JSON.stringify({cmd: "resourceStat", stat: processDesc[0].monit}));
-				});
-				break;
-
-			case "consoleInput":
-				if(!("identifier" in ws)) {
-					return;
-				}
-
-				if(!checkPermissionLevel(ws, 4)) {
-					return;
-				}
-
-				out = "CONSOLE\t" + serverKeys[ws.identifier] + "\t" + ws.loggedInAs + "\t" + data.msg;
-				servers[ws.identifier].write(out + "\r\n");
-
-				out = {
-					cmd: "consoleInput",
-					who: ws.loggedInAs,
-					msg: data.msg,
-					time: Date.now()
-				};
-
-				wss.broadcast(ws.identifier, JSON.stringify(out));		
-				break;
+		if("cmd" in data) {
+			if(data.cmd in wsFuncs) {
+				wsFuncs[data.cmd](ws, data);
+			}
 		}
 	});
 });
+
 const interval = setInterval(function ping() {
 	wss.clients.forEach(function each(ws) {
 		if(ws.isAlive === false) {
