@@ -418,6 +418,24 @@ ws.onmessage = function(event) {
 			$("#consoleLines").append(elem);
 			$("#consoleLines").append("<br/>");
 			break;
+
+		case "modVarsStatus":
+			for(let varName in data.status) {
+				let status = data.status[varName].success;
+				elem = $(`#variableList tr[data-var="${varName}"] td:last-child`);
+
+				if(status) {
+					elem.addClass("varFlashSuccess");
+				} else {
+					elem.addClass("varFlashError");
+				}
+
+				elem.one("animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd", function() {
+					elem.removeClass("varFlashSuccess");
+					elem.removeClass("varFlashError");
+				});
+			}
+			break;
 	}
 }
 /*
@@ -642,5 +660,22 @@ $("#saveVarsButton").on("click", function(event) {
 
 	if(Object.keys(out).length) {
 		ws.send(JSON.stringify(out));
+	}
+});
+
+$("#resetVarsButton").on("click", function(event) {
+	if(!Object.keys(variableData).length) {
+		return;
+	}
+
+	for(varName in variableData) {
+		let elem = $(`#variableList tr[data-var="${varName}"] td input`);
+		let varData = variableData[varName];
+
+		if(varData.type == "bool") {
+			elem[0].checked = varData.value | 0;
+		} else {
+			elem.val(varData.value);
+		}
 	}
 });

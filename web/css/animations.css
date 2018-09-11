@@ -63,3 +63,31 @@
 	animation-duration: .1s;
 	animation-fill-mode: forwards;
 }
+
+@keyframes varFlashSuccess {
+	from {
+		background-color: #8fde5d;
+	}
+
+	to {
+		background-color: transparent;
+	}
+}
+.varFlashSuccess {
+	animation-name: varFlashSuccess;
+	animation-duration: 1s;
+}
+
+@keyframes varFlashError {
+	from {
+		background-color: #eb564b;
+	}
+
+	to {
+		background-color: transparent;
+	}
+}
+.varFlashError {
+	animation-name: varFlashError;
+	animation-duration: 1s;
+}

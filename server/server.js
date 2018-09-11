@@ -487,9 +487,23 @@ var wsFuncs = {
 					break;
 
 				case "bool":
-					value = parseInt(value, 10) % 2;
-					if(isNaN(value)) {
-						value = 0;
+					switch(value) {
+						case true:
+						case "true":
+							value = 1;
+							break;
+
+						case false:
+						case "false":
+							value = 0;
+							break;
+
+						default:
+							value = parseInt(value, 10) % 2;
+							if(isNaN(value)) {
+								value = 0;
+							}
+							break;
 					}
 					break;
 			}
@@ -499,6 +513,7 @@ var wsFuncs = {
 				value: value
 			};
 
+			servers[ws.identifier].serverVars[variable].value = value;
 			servers[ws.identifier].write(["MODVAR", serverKeys[ws.identifier], ws.loggedInAs, variable, value].join("\t") + "\r\n");
 		}
 

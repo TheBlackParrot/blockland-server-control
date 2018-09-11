@@ -98,6 +98,14 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 			for(%i = 0; %i < getWordCount(%vars); %i++) {
 				%var = getWord(%vars, %i);
 				eval(%var @ " = \"" @ %value @ "\";");
+
+				switch$(%var) {
+					case "$Server::Name":
+						RemoteControlTCPLines.send("detail\ttitle|" @ strReplace($Server::Name, "|", "_"));
+
+					case "$Pref::Server::MaxPlayers":
+						RemoteControlTCPLines.send("stat\tmaxplayers|" @ $Pref::Server::MaxPlayers);
+				}
 			}
 	}
 }
