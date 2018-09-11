@@ -167,6 +167,7 @@ function autoLogin(identifier = activeIdentifier) {
 var serverData = {};
 var playerData = {};
 var activeIdentifier;
+var variableData = {};
 ws.onmessage = function(event) {
 	let data = JSON.parse(event.data);
 
@@ -201,6 +202,13 @@ ws.onmessage = function(event) {
 
 			autoLogin();
 
+			$("#consoleLines").empty();
+			$("#variableList").empty();
+
+			playerData = {};
+			variableData = {};
+			$("#saveVarsButton").addClass("disabled");
+
 			var out = {
 				cmd: "uptime"
 			}
@@ -219,8 +227,6 @@ ws.onmessage = function(event) {
 			$(".playerRow").remove();
 			$(".wrapper").show();
 			$("#setCredentialsButton").show();
-
-			$("#consoleLines").empty();
 			break;
 
 		case "stat":
@@ -355,10 +361,10 @@ ws.onmessage = function(event) {
 			break;
 
 		case "vars":
+			variableData = Object.assign(data.vars, variableData);
 			for(var vname in data.vars) {
+				let varData = data.vars[vname];
 				let varNames = vname.split(" ");
-				let varValue = data.vars[vname].value;
-				let varType = data.vars[vname].type;
 
 				elem = $('<tr></tr>').attr("data-var", varNames.join(" "));
 
@@ -374,8 +380,33 @@ ws.onmessage = function(event) {
 					elem.append($(`<td>${varNames[0]}</td>`));
 				}
 
-				var mainElem = $(`<td></td>`);
-				mainElem.append($(`<input type="text" value="${varValue}">`));
+				let inputElem;
+				switch(varData.type) {
+					case "bool":
+						inputElem = $('<input type="checkbox">');
+						if(parseInt(varData.value, 10)) {
+							inputElem.attr("checked", "");
+						}
+						break;
+
+					case "password":
+						inputElem = $('<input type="password">').attr("value", varData.value);
+						break;
+
+					default:
+						inputElem = $('<input type="text">').attr("value", varData.value);
+						break;
+				}
+
+				if(!varData.mutant || varData.unavailable) {
+					inputElem.attr("disabled", "1");
+				}
+
+				if(varData.mutant) {
+					$("#saveVarsButton").removeClass("disabled");
+				}
+
+				var mainElem = $(`<td></td>`).append(inputElem);
 				elem.append(mainElem);
 
 				$("#variableList").append(elem);
@@ -571,4 +602,45 @@ $("body").on("click", ".playerRow", function(event) {
 	$("#playerStatTableAFK").text(parseInt(data.afk, 10) ? "Yes" : "No");
 
 	showDialog("#playerDialog");
+});
+
+$("#saveVarsButton").on("click", function(event) {
+	if(!activeIdentifier) {
+		return;
+	}
+
+	if($(this).hasClass("disabled")) {
+		return;
+	}
+
+	let out = {
+		cmd: "modVars",
+		time: Date.now(),
+		which: {}
+	};
+
+	for(varName in variableData) {
+		let elem = $(`#variableList tr[data-var="${varName}"] td input`);
+		let varData = variableData[varName];
+		let newVal; // jquery shenanigans :blfegg:
+		let oldVal = varData.value;
+
+		if(varData.type == "bool") {
+			newVal = elem[0].checked;
+		} else {
+			newVal = elem.val();
+		}
+
+		if(newVal == oldVal) {
+			continue;
+		}
+
+		console.log(`updated ${varName} to ${newVal}`);
+		variableData[varName].value = newVal;
+		out.which[varName] = newVal;
+	}
+
+	if(Object.keys(out).length) {
+		ws.send(JSON.stringify(out));
+	}
 });

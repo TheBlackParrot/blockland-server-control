@@ -9,16 +9,17 @@
 }
 #variableList tr td {
 	font-size: 10pt;
-	padding: 2px;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 #variableList tr:last-child td {
 	border-bottom: none;
 }
 #variableList tr td:nth-child(1) {
 	text-align: right;
-	font-weight: 700;
+	font-weight: 500;
 	opacity: 0.5;
+	background-color: rgba(0, 0, 0, 0.5);
+	padding-left: 8px;
 	padding-right: 8px;
 }
 #variableList tr td:nth-child(2) {
@@ -30,16 +31,24 @@
 }
 
 #variableList input {
+	padding: 6px;
+}
+
+#variableList input[type="checkbox"] {
+	/* wtf */
+	margin: 6px;
+}
+
+#variableList input[type="text"], #variableList input[type="password"] {
 	background: transparent;
 	outline: none;
 	border: none;
 	color: #fff;
 	font-size: 10pt;
 	width: 100%;
-	padding: 4px;
 }
 
-#variableList input:active, #variableList input:focus {
+#variableList input[type="text"]:active, #variableList input[type="password"]:active, #variableList input[type="text"]:focus, #variableList input[type="password"]:focus {
 	background: #000;
 }
 

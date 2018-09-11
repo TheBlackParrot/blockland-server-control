@@ -451,6 +451,58 @@ var wsFuncs = {
 		if(!("serverVars" in servers[ws.identifier])) {
 			return;
 		}
+
+		let vars = servers[ws.identifier].serverVars;
+		let out = {
+			cmd: "modVarsStatus",
+			time: Date.now(),
+			status: new Object
+		};
+
+		for(variable in data.which) {
+			let varData = vars[variable];
+
+			if(!checkPermissionLevel(ws, varData.permissionLevel.edit)) {
+				out.status[variable] = {
+					success: false
+				};
+				continue;
+			}
+
+			let value = data.which[variable];
+
+			if(varData.value == data.which[variable]) {
+				out.status[variable] = {
+					success: false
+				};
+				continue;
+			}
+
+			switch(varData.type) {
+				case "int":
+					value = parseInt(value, 10);
+					if(isNaN(value)) {
+						value = 0;
+					}
+					break;
+
+				case "bool":
+					value = parseInt(value, 10) % 2;
+					if(isNaN(value)) {
+						value = 0;
+					}
+					break;
+			}
+
+			out.status[variable] = {
+				success: true,
+				value: value
+			};
+
+			servers[ws.identifier].write(["MODVAR", serverKeys[ws.identifier], ws.loggedInAs, variable, value].join("\t") + "\r\n");
+		}
+
+		ws.send(JSON.stringify(out));
 	},
 
 	resourceStat: function(ws) {

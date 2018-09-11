@@ -82,6 +82,23 @@ function RemoteControlTCPObject::onLine(%this, %line) {
 			}
 
 			eval(%line);
+
+		case "MODVAR":
+			// ["MODVAR", serverKeys[ws.identifier], ws.loggedInAs, variable, value]
+			%key = getField(%line, 1);
+			%who = getField(%line, 2);
+			%vars = getField(%line, 3);
+			%value = getFields(%line, 4);
+
+			if(%key !$= $RemoteControl::ConnectKey) {
+				echo("Invalid server key, not setting variable.");
+				return;
+			}
+
+			for(%i = 0; %i < getWordCount(%vars); %i++) {
+				%var = getWord(%vars, %i);
+				eval(%var @ " = \"" @ %value @ "\";");
+			}
 	}
 }
 
@@ -165,7 +182,7 @@ function _RC_sendAllRemoteControlModVarData() {
 		%view = $RemoteControl::ModVarViewPermissionLimit[%i];
 		%edit = $RemoteControl::ModVarEditPermissionLimit[%i];
 
-		RemoteControlTCPLines.send("var" TAB %var TAB %type TAB %view TAB %edit TAB eval("return" SPC getWord($RemoteControl::ModVar[%i], 0) @ ";"));
+		RemoteControlTCPLines.send("var" TAB %var TAB %type TAB %view TAB %edit TAB eval("return expandEscape(" SPC getWord($RemoteControl::ModVar[%i], 0) @ ");"));
 	}
 }
 
